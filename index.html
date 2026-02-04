@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Parallel Lines & Transversals</title>
+<style>
+  :root {
+    --red: #C51D34;
+    --charcoal: #2E2E30;
+    --gray: #808080;
+    --offwhite: #F5F5F5;
+  }
+
+  body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: var(--offwhite);
+    color: var(--charcoal);
+  }
+
+  header {
+    background: var(--charcoal);
+    color: var(--offwhite);
+    padding: 10px 20px;
+    text-align: center;
+  }
+
+  h1 { margin: 0; font-size: 1.4rem; }
+
+  main {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    padding: 20px;
+    justify-content: flex-start;
+    align-items: flex-start;
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  #canvas-container {
+    flex: 0 0 auto;
+    min-width: 500px;
+    background: white;
+    border: 4px solid var(--gray);
+    border-radius: 8px;
+    padding: 10px;
+    position: relative;
+    margin: 0 auto;
+    width: fit-content;
+  }
+
+  #controls {
+    margin-top: 8px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    font-size: 0.9rem;
+    max-width: 100%;
+  }
+  .video-btn {
+      background-color: #c41524;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      padding: 10px 50px;
+      font-size: 16px;
+      cursor: pointer;
+      margin-right: 0px;
+      font-weight: bold;
+    }
+  button {
+    border-radius: 4px;
+    border: none;
+    padding: 6px 10px;
+    cursor: pointer;
+    background: var(--red);
+    color: var(--offwhite);
+    flex: 0 1 calc(33.333% - 6px);
+    min-width: 100px;
+    height: 40px;
+    box-sizing: border-box;
+  }
+
+  button.secondary { background: var(--gray); }
+
+  #info-panel {
+    flex: none;
+    min-width: 260px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .card {
+    background: white;
+    border-radius: 8px;
+    padding: 10px 12px;
+    box-shadow: 0 0 4px rgba(0,0,0,0.15);
+  }
+
+  .card h2 {
+    margin: 0 0 4px;
+    font-size: 1.1rem;
+    color: var(--red);
+  }
+
+  .definition { font-size: 0.9rem; }
+
+  .vocab-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 8px;
+    margin-top: 6px;
+  }
+
+  .vocab-term {
+    border-left: 5px solid var(--red);
+    padding-left: 6px;
+    font-size: 0.9rem;
+  }
+
+  #angle-output { font-size: 0.9rem; margin-top: 4px; }
+
+  canvas {
+    border-radius: 4px;
+    background: var(--offwhite);
+    display: block;
+    margin: 0 auto;
+  }
+
+  .legend {
+    font-size: 0.85rem;
+    margin-top: 4px;
+  }
+
+  .legend span {
+    display: inline-block;
+    margin-right: 8px;
+  }
+
+  .dot {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    margin-right: 3px;
+  }
+  .manip-row {
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    gap: 20px;
+    width: 100%;
+    box-sizing: border-box;
+    position: relative;
+  }
+
+  .right-column {
+    position: absolute;
+    top: 12px;
+    right: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    align-items: center;
+    justify-content: center;
+    width: max-content;
+  }
+
+  #ixlBtn {
+    background: #2ECC40;
+    color: white;
+    border: none;
+    padding: 12px 20px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+    text-decoration: none;
+    display: block;
+    width: 100%;
+    box-sizing: border-box;
+    text-align: center;
+  }
+
+  #ixlBtn:hover {
+    background: #27AE60;
+  }
+
+  #videosBtn {
+    background: var(--red);
+    color: white;
+    border: none;
+    padding: 12px 20px;
+    border-radius: 4px;
+    text-decoration: none;
+    font-weight: bold;
+    display: block;
+    width: 100%;
+    box-sizing: border-box;
+    text-align: center;
+  }
+
+  #videosBtn:hover { background: #A01829; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Parallel Lines Cut by a Transversal – Angle Relationships</h1>
+</header>
+
+<main>
+  <div class="manip-row">
+    <section id="canvas-container">
+    <canvas id="transversalCanvas" width="800" height="488"></canvas>
+
+    <div id="controls">
+      <button id="resetBtn">Reset Transversal</button>
+      <button id="showVerticalAngles" class="secondary">Vertical Angles</button>
+      <button id="showAdjacentAngles" class="secondary">Adjacent Angles</button>
+      <button id="showCorrespondingAngles" class="secondary">Corresponding Angles</button>
+      <button id="showSameSideInterior" class="secondary">Same-Side Interior Angles</button>
+      <button id="showOppositeInterior" class="secondary">Alternate Interior Angles</button>
+      <button id="showSameSideExterior" class="secondary">Same-Side Exterior Angles</button>
+      <button id="showAlternateExterior" class="secondary">Alternate Exterior Angles</button>
+      <button id="clearHighlight" class="secondary">Clear Highlight</button>
+    </div>
+
+    <div class="legend">
+      <span><span class="dot" style="background:#C51D34;"></span>Transversal</span>
+      <span><span class="dot" style="background:#2E2E30;"></span>Parallel Lines</span>
+    </div>
+
+    <div id="angle-output">
+      Instructions: Drag the red line’s endpoints or its middle to explore.
+    </div>
+    </section>
+
+    <div class="right-column">
+  <a id="ixlBtn" href="ixl-resources.html">IXL Resources</a>
+  <a id="videosBtn" href="videos.html">Videos</a>
+  <a id="practiceBtn" href="practice.html" class="video-btn">Practice</a>
+</div>    
+  </div>
+
+  <section id="info-panel">
+  
+<script>
+const canvas = document.getElementById("transversalCanvas");
+const ctx = canvas.getContext("2d");
+const angleOut = document.getElementById("angle-output");
+
+const line1Y = 180;
+let line2Y = 340;
+let parallel = true;
+
+// initial transversal endpoints
+let A = { x: 80, y: 40 };
+let B = { x: 570, y: 360 };
+
+const radius = 8;
+let mode = "none"; // "none","corr","alt","same"
+let adjacentMode = 0; // 0 for (0,1)+(2,3), 1 for (1,2)+(3,0)
+
+// drag helpers and flags
+let draggingPoint = null;
+let draggingWhole = false;
+
+function dist(x1, y1, x2, y2) {
+  return Math.hypot(x1 - x2, y1 - y2);
+}
+
+function lineMidpoint() {
+  return { x: (A.x + B.x) / 2, y: (A.y + B.y) / 2 };
+}
+
+// event listeners
+canvas.addEventListener("mousedown", startDrag);
+canvas.addEventListener("mousemove", drag);
+canvas.addEventListener("mouseup", endDrag);
+canvas.addEventListener("mouseleave", endDrag);
+
+document.getElementById("resetBtn").onclick = () => {
+  A = { x: 80, y: 40 };
+  B = { x: 570, y: 360 };
+  parallel = true;
+  line2Y = 290;
+  mode = "none";
+  draw();
+};
+
+document.getElementById("showVerticalAngles").onclick = () => {
+  mode = "vertical";
+  draw();
+};
+document.getElementById("showAdjacentAngles").onclick = () => {
+  if (mode === "adjacent") {
+    adjacentMode = (adjacentMode + 1) % 2;
+  } else {
+    mode = "adjacent";
+    adjacentMode = 0;
+  }
+  draw();
+};
+document.getElementById("showCorrespondingAngles").onclick = () => {
+  mode = "corresponding";
+  draw();
+};
+document.getElementById("showSameSideInterior").onclick = () => {
+  mode = "sameSideInterior";
+  draw();
+};
+document.getElementById("showOppositeInterior").onclick = () => {
+  mode = "oppositeInterior";
+  draw();
+};
+document.getElementById("showSameSideExterior").onclick = () => {
+  mode = "sameSideExterior";
+  draw();
+};
+document.getElementById("showAlternateExterior").onclick = () => {
+  mode = "alternateExterior";
+  draw();
+};
+document.getElementById("clearHighlight").onclick = () => {
+  mode = "none";
+  draw();
+};
+
+function updateToggleText() {
+  document.getElementById("toggleParallel").textContent =
+    parallel ? "Toggle: Not Parallel" : "Toggle: Parallel";
+}
+
+// dragging logic
+function startDrag(e) {
+  const r = canvas.getBoundingClientRect();
+  const mx = e.clientX - r.left;
+  const my = e.clientY - r.top;
+
+  // drag endpoints (change angle)
+  if (dist(mx, my, A.x, A.y) < radius + 3) {
+    draggingPoint = A;
+    draggingWhole = false;
+    return;
+  }
+  if (dist(mx, my, B.x, B.y) < radius + 3) {
+    draggingPoint = B;
+    draggingWhole = false;
+    return;
+  }
+
+  // drag near midpoint (slide whole transversal)
+  const M = lineMidpoint();
+  if (dist(mx, my, M.x, M.y) < 30) {   // larger grab radius
+    draggingWhole = true;
+    draggingPoint = { x: mx, y: my }; // last mouse position
+  }
+}
+
+function drag(e) {
+  if (!draggingPoint && !draggingWhole) return;
+
+  const r = canvas.getBoundingClientRect();
+  const mx = e.clientX - r.left;
+  const my = e.clientY - r.top;
+
+  if (draggingWhole) {
+    const dx = mx - draggingPoint.x;
+    const dy = my - draggingPoint.y;
+    A.x += dx; B.x += dx;
+    A.y += dy; B.y += dy;
+    draggingPoint.x = mx;
+    draggingPoint.y = my;
+  } else {
+    draggingPoint.x = mx;
+    draggingPoint.y = my;
+  }
+  draw();
+}
+
+function endDrag() {
+  draggingPoint = null;
+  draggingWhole = false;
+}
+
+// geometry helpers
+function drawLine(x1, y1, x2, y2, color, width = 3) {
+  ctx.strokeStyle = color;
+  ctx.lineWidth = width;
+  ctx.beginPath();
+  ctx.moveTo(x1, y1);
+  ctx.lineTo(x2, y2);
+  ctx.stroke();
+}
+
+function lineIntersection(p1, p2, p3, p4) {
+  const den =
+    (p1.x - p2.x) * (p3.y - p4.y) -
+    (p1.y - p2.y) * (p3.x - p4.x);
+  if (Math.abs(den) < 1e-6) return null;
+  const x =
+    ((p1.x * p2.y - p1.y * p2.x) * (p3.x - p4.x) -
+      (p1.x - p2.x) * (p3.x * p4.y - p3.y * p4.x)) /
+    den;
+  const y =
+    ((p1.x * p2.y - p1.y * p2.x) * (p3.y - p4.y) -
+      (p1.y - p2.y) * (p3.x * p4.x - p3.y * p4.x)) /
+    den;
+  return { x, y };
+}
+
+function angleBetween(p, a, b) {
+  const v1 = { x: a.x - p.x, y: a.y - p.y };
+  const v2 = { x: b.x - p.x, y: b.y - p.y };
+  const dot = v1.x * v2.x + v1.y * v2.y;
+  const m1 = Math.hypot(v1.x, v1.y);
+  const m2 = Math.hypot(v2.x, v2.y);
+  if (m1 === 0 || m2 === 0) return 0;
+  let ang = Math.acos(Math.max(-1, Math.min(1, dot / (m1 * m2))));
+  return ang * 180 / Math.PI;
+}
+
+// returns 4 angles
+function computeAngles(P, lineY, slant = 0) {
+  const along = 80;
+  const up = { x: P.x + (A.x - B.x), y: P.y + (A.y - B.y) };
+  const down = { x: P.x + (B.x - A.x), y: P.y + (B.y - A.y) };
+  const left = { x: P.x - along, y: lineY + slant };
+  const right = { x: P.x + along, y: lineY + slant };
+
+  const a1 = angleBetween(P, right, up);   // top-right
+  const a2 = angleBetween(P, right, down); // bottom-right
+  const a3 = angleBetween(P, down, left);  // bottom-left
+  const a4 = angleBetween(P, left, up);    // top-left
+  return [a1, a2, a3, a4];
+}
+
+function labelColor(which, i) {
+  if (mode === "none") return "#808080";
+
+  if (mode === "vertical") {
+    // Vertical angles: (0,2) and (1,3) at each intersection
+    // Each pair gets a different color
+    if (i === 0 || i === 2) return "#C51D34";    // Red for one pair
+    if (i === 1 || i === 3) return "#FFA500";    // Orange for other pair
+  }
+  if (mode === "adjacent") {
+    // Adjacent angles with cycling pairs
+    if (adjacentMode === 0) {
+      // Top and bottom pairs: (0,1) and (2,3)
+      if (i === 0 || i === 1) return "#C51D34";    // Red for top pair
+      if (i === 2 || i === 3) return "#FFA500";    // Orange for bottom pair
+    } else {
+      // Right and left pairs: (1,2) and (3,0)
+      if (i === 1 || i === 2) return "#C51D34";    // Red for right pair
+      if (i === 3 || i === 0) return "#FFA500";    // Orange for left pair
+    }
+  }
+  if (mode === "corresponding") {
+    // Corresponding angles: each position gets a different color
+    if (i === 0) return "#C51D34";      // Red
+    if (i === 1) return "#FFA500";      // Orange
+    if (i === 2) return "#0066FF";      // Blue
+    if (i === 3) return "#00CC00";      // Green
+  }
+  if (mode === "sameSideInterior") {
+    // Same-side interior angles: (A1, B0) and (A2, B3)
+    if ((which === "A" && i === 1) || (which === "B" && i === 0)) return "#C51D34";  // Red
+    if ((which === "A" && i === 2) || (which === "B" && i === 3)) return "#FFA500";  // Orange
+  }
+  if (mode === "oppositeInterior") {
+    // Opposite interior angles (alternate interior): (A1, B3) and (A2, B0)
+    if ((which === "A" && i === 1) || (which === "B" && i === 3)) return "#C51D34";  // Red
+    if ((which === "A" && i === 2) || (which === "B" && i === 0)) return "#FFA500";  // Orange
+  }
+  if (mode === "sameSideExterior") {
+    // Same-side exterior angles: (A0, B1) and (A3, B2)
+    if ((which === "A" && i === 0) || (which === "B" && i === 1)) return "#C51D34";  // Red
+    if ((which === "A" && i === 3) || (which === "B" && i === 2)) return "#FFA500";  // Orange
+  }
+  if (mode === "alternateExterior") {
+    // Alternate exterior angles: (A0, B2) and (A3, B1)
+    if ((which === "A" && i === 0) || (which === "B" && i === 2)) return "#C51D34";  // Red
+    if ((which === "A" && i === 3) || (which === "B" && i === 1)) return "#FFA500";  // Orange
+  }
+  return "#808080";
+}
+
+function drawAngleLabels(P, tag, angles) {
+  ctx.font = "18px Arial";
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+
+  const h = 30, v = 22;
+  const pos = [
+    { dx: h, dy: -v }, // 1
+    { dx: h, dy: v },  // 2
+    { dx: -h, dy: v }, // 3
+    { dx: -h, dy: -v } // 4
+  ];
+
+  for (let i = 0; i < 4; i++) {
+    ctx.fillStyle = labelColor(tag, i);
+    ctx.fillText(
+      angles[i].toFixed(0) + "°",
+      P.x + pos[i].dx,
+      P.y + pos[i].dy
+    );
+  }
+}
+
+function draw() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  // base lines (long, using canvas width)
+  drawLine(10, line1Y, canvas.width - 10, line1Y, "#2E2E30", 4);
+  if (parallel) {
+    drawLine(10, line2Y, canvas.width - 10, line2Y, "#2E2E30", 4);
+  } else {
+    drawLine(10, line2Y, canvas.width - 10, line2Y + 30, "#2E2E30", 4);
+  }
+
+  // transversal
+  drawLine(A.x, A.y, B.x, B.y, "#C51D34", 4);
+  ctx.fillStyle = "#C51D34";
+  ctx.beginPath();
+  ctx.arc(A.x, A.y, radius, 0, Math.PI * 2);
+  ctx.arc(B.x, B.y, radius, 0, Math.PI * 2);
+  ctx.fill();
+
+// midpoint dot (grab here to slide whole transversal)
+  const M = lineMidpoint();
+  ctx.beginPath();
+  ctx.arc(M.x, M.y, 5, 0, Math.PI * 2);
+  ctx.fill();
+
+  // intersections
+  const top1 = { x: 0, y: line1Y };
+  const top2 = { x: canvas.width, y: line1Y };
+  const bot1 = { x: 0, y: line2Y };
+  const bot2 = parallel
+    ? { x: canvas.width, y: line2Y }
+    : { x: canvas.width, y: line2Y + 30 };
+
+  const P = lineIntersection(A, B, top1, top2);
+  const Q = lineIntersection(A, B, bot1, bot2);
+  if (!P || !Q) return;
+
+  const angA = computeAngles(P, line1Y, 0);
+  const angB = parallel
+    ? computeAngles(Q, line2Y, 0)
+    : computeAngles(Q, line2Y, 15);
+
+  drawAngleLabels(P, "A", angA);
+  drawAngleLabels(Q, "B", angB);
+}
+
+draw();
+</script>
+</body>
+</html>
