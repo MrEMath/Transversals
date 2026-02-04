@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Teacher Access</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header>
+    <h1>Teacher Access</h1>
+  </header>
+
+  <main id="teacher-screen">
+    <!-- Login -->
+    <section id="teacher-login">
+      <h2>Teacher Login</h2>
+      <label for="teacher-name">Teacher:</label>
+      <select id="teacher-name">
+        <option value="">Select your name</option>
+        <option value="Englade">Englade</option>
+        <option value="Russell">Russell</option>
+        <option value="Miller">Miller</option>
+        <option value="Massengill">Massengill</option>
+        <option value="Clark">Clark</option>
+      </select>
+
+      <label for="teacher-password">Password:</label>
+      <input type="password" id="teacher-password">
+
+      <button id="teacher-login-btn">Log In</button>
+      <p id="teacher-login-error" class="feedback-message warning"></p>
+    </section>
+
+    <!-- Dashboard -->
+    <section id="teacher-dashboard" style="display:none;">
+      <h2 id="dashboard-title"></h2>
+
+      <!-- Overall stats -->
+      <section>
+        <h3>Overall Class Stats</h3>
+        <div id="overall-stats"></div>
+      </section>
+
+      <!-- Item analysis for entire class -->
+      <section>
+        <h3>Item Analysis (All Students)</h3>
+        <table id="item-analysis-table">
+          <thead>
+            <tr>
+              <th>Q#</th>
+              <th>SBG</th>
+              <th>% Correct</th>
+              <th>Avg Attempts</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </section>
+
+      <!-- Individual student selector + detail -->
+      <section>
+        <h3>Individual Student</h3>
+        <label for="student-select">Student:</label>
+        <select id="student-select">
+          <option value="">Select a student</option>
+        </select>
+
+        <div id="student-summary"></div>
+
+        <h4>Item Analysis for Student</h4>
+        <table id="student-item-table">
+          <thead>
+            <tr>
+              <th>Q#</th>
+              <th>SBG</th>
+              <th>Attempts</th>
+              <th>Correct?</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </section>
+    </section>
+  </main>
+
+  <footer>
+    <p>&copy; 2026 Transversal Practice</p>
+  </footer>
+
+  <script src="teacher.js"></script>
+</body>
+</html>
