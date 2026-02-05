@@ -102,7 +102,7 @@ function renderDashboard(
   const latestByStudentQuestion = buildLatestByStudentQuestion(teacherRecords);
   buildSbgQuestionCards(teacherRecords, latestByStudentQuestion);
 
-  const studentNames = [...new Set(teacherRecords.map(r => r.studentName))];
+  const studentName = [...new Set(teacherRecords.map(r => r.studentName))];
   const attemptIds = [...new Set(teacherRecords.map(r => r.attemptId))];
   const correctCount = teacherRecords.filter(r => r.correct).length;
   const percentCorrect = teacherRecords.length
@@ -179,13 +179,13 @@ function renderDashboard(
   bandsEl.innerHTML = bandsHtml;
 
   overallStatsEl.innerHTML = `
-    <p>Students: <strong>${studentNames.length}</strong></p>
+    <p>Students: <strong>${studentName.length}</strong></p>
     <p>Total practice attempts: <strong>${attemptIds.length}</strong></p>
     <p>Average accuracy (all items): <strong>${percentCorrect}%</strong></p>
   `;
 
   renderItemAnalysis(teacherRecords, itemAnalysisBody);
-  populateStudentDropdown(studentNames, studentSelect);
+  populateStudentDropdown(studentName, studentSelect);
   studentSummaryEl.innerHTML = "";
   studentItemBody.innerHTML = "";
 }
@@ -194,13 +194,16 @@ function buildSbgQuestionCards(teacherRecords, latestByStudentQuestion) {
   const container = document.getElementById("sbg-question-cards");
   container.innerHTML = "";
 
-  const sbgGroups = {}; // { '1.0': { '3': [records...], ... }, ... }
+  // group by sbg then questionId
+  const sbgGroups = {}; // { '0.5': { '1': [records...], ... }, ... }
 
   teacherRecords.forEach(r => {
     const sbgKey = r.sbg.toString();
+    const qid = r.questionId;
+
     if (!sbgGroups[sbgKey]) sbgGroups[sbgKey] = {};
-    if (!sbgGroups[sbgKey][r.questionId]) sbgGroups[sbgKey][r.questionId] = [];
-    sbgGroups[sbgKey][r.questionId].push(r);
+    if (!sbgGroups[sbgKey][qid]) sbgGroups[sbgKey][qid] = [];
+    sbgGroups[sbgKey][qid].push(r);
   });
 
   Object.keys(sbgGroups)
@@ -218,16 +221,20 @@ function buildSbgQuestionCards(teacherRecords, latestByStudentQuestion) {
         .forEach(qid => {
           const qRecords = questions[qid];
 
+          // per-question % correct (class)
           const correct = qRecords.filter(r => r.correct).length;
           const total = qRecords.length;
           const pct = total ? Math.round((correct / total) * 100) : 0;
 
+          // student list using latestByStudentQuestion
           const byStudent = {};
           qRecords.forEach(r => {
             const key = `${r.studentName}|${r.questionId}`;
             const latest = latestByStudentQuestion[key];
             if (!latest) return;
-            if (!byStudent[latest.studentName]) byStudent[latest.studentName] = latest;
+            if (!byStudent[latest.studentName]) {
+              byStudent[latest.studentName] = latest;
+            }
           });
 
           const students = Object.values(byStudent).sort((a, b) =>
@@ -260,37 +267,34 @@ function buildSbgQuestionCards(teacherRecords, latestByStudentQuestion) {
     });
 }
 
-function renderItemAnalysis(records, itemAnalysisBody) {
-  itemAnalysisBody.innerHTML = "";
+const byQuestion = {};
+records.forEach(r => {
+  const qid = r.questionnumber;
+  if (!byQuestion[qid]) byQuestion[qid] = [];
+  byQuestion[qid].push(r);
+});
 
-  const byQuestion = {};
-  records.forEach(r => {
-    if (!byQuestion[r.questionId]) byQuestion[r.questionId] = [];
-    byQuestion[r.questionId].push(r);
+Object.keys(byQuestion)
+  .sort((a, b) => a - b)
+  .forEach(qid => {
+    const group = byQuestion[qid];
+    const correct = group.filter(r => r.correct).length;
+    const total = group.length;
+    const percent = total ? Math.round((correct / total) * 100) : 0;
+    const sbgLevel = group.sbglevel;
+
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td>${qid}</td>
+      <td>${sbgLevel}</td>
+      <td>${percent}%</td>
+    `;
+    itemAnalysisBody.appendChild(tr);
   });
 
-  Object.keys(byQuestion)
-    .sort((a, b) => a - b)
-    .forEach(qid => {
-      const group = byQuestion[qid];
-      const correct = group.filter(r => r.correct).length;
-      const total = group.length;
-      const percent = total ? Math.round((correct / total) * 100) : 0;
-      const sbgLevel = group[0].sbg;
-
-      const tr = document.createElement("tr");
-      tr.innerHTML = `
-        <td>${qid}</td>
-        <td>${sbgLevel}</td>
-        <td>${percent}%</td>
-      `;
-      itemAnalysisBody.appendChild(tr);
-    });
-}
-
-function populateStudentDropdown(studentNames, studentSelect) {
+function populateStudentDropdown(studentName, studentSelect) {
   studentSelect.innerHTML = '<option value="">Select a student</option>';
-  studentNames.sort().forEach(name => {
+  studentName.sort().forEach(name => {
     const opt = document.createElement("option");
     opt.value = name;
     opt.textContent = name;
@@ -315,6 +319,7 @@ function buildLatestByStudentQuestion(teacherRecords) {
 // ---------- STUDENT DETAIL ----------
 
 function renderStudentSummaryAndAttempts(studentName, studentSummaryEl, attemptSelect) {
+  // 1. Get this student's records for the current teacher
   const records = allRecords.filter(r =>
     r.teacher === currentTeacher && r.studentName === studentName
   );
@@ -323,15 +328,18 @@ function renderStudentSummaryAndAttempts(studentName, studentSummaryEl, attemptS
     return;
   }
 
+  // 2. Group by attempt using timestamp as the attempt id
   const byAttempt = {};
   records.forEach(r => {
-    if (!byAttempt[r.attemptId]) byAttempt[r.attemptId] = [];
-    byAttempt[r.attemptId].push(r);
+    const attemptId = r.timestamp;  // use timestamp as the key
+    if (!byAttempt[attemptId]) byAttempt[attemptId] = [];
+    byAttempt[attemptId].push(r);
   });
 
-  const attemptIds = Object.keys(byAttempt).sort();
+  const attemptIds = Object.keys(byAttempt).sort(); // oldest → newest
   const totalAttempts = attemptIds.length;
 
+  // 3. Compute current SBG from the latest attempt
   const latestId = attemptIds[attemptIds.length - 1];
   const latest = byAttempt[latestId];
   const correctItems = latest.filter(r => r.correct);
@@ -349,10 +357,10 @@ function renderStudentSummaryAndAttempts(studentName, studentSummaryEl, attemptS
     <p>Current SBG level: <strong>${currentSbgLevel}</strong></p>
   `;
 
+  // 4. Build attempt dropdown (label from timestamp)
   attemptSelect.innerHTML = '<option value="">Select an attempt</option>';
   attemptIds.forEach(id => {
-    const any = byAttempt[id][0];
-    const date = new Date(any.timestamp);
+    const date = new Date(id);        // id is the timestamp string
     const label = date.toLocaleString();
     const opt = document.createElement("option");
     opt.value = id;
@@ -367,7 +375,7 @@ function renderStudentAttemptItems(studentName, attemptId, studentItemBody) {
   const records = allRecords.filter(r =>
     r.teacher === currentTeacher &&
     r.studentName === studentName &&
-    r.attemptId === Number(attemptId)
+    r.timestamp === attemptId
   );
 
   studentItemBody.innerHTML = "";
@@ -385,14 +393,19 @@ function renderStudentAttemptItems(studentName, attemptId, studentItemBody) {
 }
 
 function computeStudentCurrentSbg(recordsForStudent) {
+  // group by attempt using timestamp
   const byAttempt = {};
   recordsForStudent.forEach(r => {
-    if (!byAttempt[r.attemptId]) byAttempt[r.attemptId] = [];
-    byAttempt[r.attemptId].push(r);
+    const attemptId = r.timestamp;  // same key you used in renderStudentSummaryAndAttempts
+    if (!byAttempt[attemptId]) byAttempt[attemptId] = [];
+    byAttempt[attemptId].push(r);
   });
+
+  // take the latest attempt
   const attemptIds = Object.keys(byAttempt).sort();
   const latest = byAttempt[attemptIds[attemptIds.length - 1]];
 
+  // average SBG over correct items in that attempt
   const correctItems = latest.filter(r => r.correct);
   if (!correctItems.length) return 0;
 
@@ -400,5 +413,5 @@ function computeStudentCurrentSbg(recordsForStudent) {
     correctItems.reduce((sum, r) => sum + (r.sbg || 0), 0) /
     correctItems.length;
 
-  return Number(avgSbg.toFixed(1));
+  return Number(avgSbg.toFixed(1)); // e.g. 0.5, 1.0, 1.5
 }
