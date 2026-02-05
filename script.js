@@ -799,6 +799,60 @@ function updateButtons() {
     nextBtn.disabled = false;
   }
 }
+function autoCheckQuestion(index) {
+  const q = questions[index];
+  const state = questionStates[index];
+  const ans = studentAnswers[index];
+
+  // If the student never selected anything for this question, leave it unanswered
+  if (ans === null) {
+    state.answered = false;
+    state.correct = false;
+    return;
+  }
+
+  let isCorrect = false;
+
+  if (!q.type) {
+    // regular multiple choice
+    isCorrect = ans === q.correct;
+  } else if (q.type === "matrix") {
+    const selected = ans || {};
+    let allCorrect = true;
+    q.statements.forEach(stmt => {
+      if (selected[stmt.id] !== stmt.correct) {
+        allCorrect = false;
+      }
+    });
+    isCorrect = allCorrect;
+  } else if (q.type === "fill") {
+    const answers = ans || {};
+    let allCorrect = true;
+    q.blanks.forEach(blank => {
+      const userVal = (answers[blank.id] || "").replace(/\s+/g, "");
+      const correctVal = blank.correct.replace(/\s+/g, "");
+      if (userVal !== correctVal) {
+        allCorrect = false;
+      }
+    });
+    isCorrect = allCorrect;
+  } else if (q.type === "multi") {
+    const answers = ans || {};
+    let allCorrect = true;
+    q.options.forEach(opt => {
+      const shouldBeChecked = !!opt.correct;
+      const isChecked = !!answers[opt.id];
+      if (shouldBeChecked !== isChecked) {
+        allCorrect = false;
+      }
+    });
+    isCorrect = allCorrect;
+  }
+
+  state.answered = true;
+  state.correct = isCorrect;
+  state.attempts = state.attempts ? state.attempts + 1 : 1;
+}
 
 // ----- BUTTON HANDLERS -----
 checkBtn.addEventListener("click", () => {
@@ -1007,15 +1061,19 @@ nextBtn.addEventListener("click", () => {
   }
 });
 submitPracticeBtn.addEventListener("click", () => {
-  // mark unanswered as incorrect, 1 attempt
+  // First, save the current question's answer
+  saveCurrentAnswer();
+
+  // Auto-check every question that hasn't been checked yet
   questionStates.forEach((state, index) => {
     if (!state.answered) {
+      autoCheckQuestion(index);
+    }
+    if (!state.answered && studentAnswers[index] === null) {
+      // truly blank: treat as skipped/incorrect
       state.answered = true;
       state.correct = false;
       state.attempts = 1;
-      if (studentAnswers[index] === null) {
-        studentAnswers[index] = null;
-      }
     }
   });
 
@@ -1060,6 +1118,7 @@ submitPracticeBtn.addEventListener("click", () => {
   // save for teacher dashboard
   finishPractice();
 });
+
 
 
 // ----- INITIALIZE -----
