@@ -109,6 +109,7 @@ function renderDashboard(
     ? Math.round((correctCount / teacherRecords.length) * 100)
     : 0;
 
+  // build per-student current SBG
   const byStudent = {};
   teacherRecords.forEach(r => {
     if (!byStudent[r.studentName]) byStudent[r.studentName] = [];
@@ -123,24 +124,28 @@ function renderDashboard(
     sbgCounts[key]++;
   });
 
+  // SBG summary bar
   const sbgSummaryEl = document.getElementById("sbg-summary");
   let sbgHtml = "";
-  Object.keys(sbgCounts).sort((a, b) => Number(a) - Number(b)).forEach(key => {
-    const count = sbgCounts[key];
-    const totalStudents = Object.keys(byStudent).length || 1;
-    const pct = Math.round((count / totalStudents) * 100);
-    sbgHtml += `
-      <div class="sbg-row">
-        <span class="sbg-label">Level ${key}</span>
-        <div class="sbg-bar">
-          <div class="sbg-bar-fill" style="width:${pct}%"></div>
+  Object.keys(sbgCounts)
+    .sort((a, b) => Number(a) - Number(b))
+    .forEach(key => {
+      const count = sbgCounts[key];
+      const totalStudents = Object.keys(byStudent).length || 1;
+      const pct = Math.round((count / totalStudents) * 100);
+      sbgHtml += `
+        <div class="sbg-row">
+          <span class="sbg-label">Level ${key}</span>
+          <div class="sbg-bar">
+            <div class="sbg-bar-fill" style="width:${pct}%"></div>
+          </div>
+          <span class="sbg-percent">${pct}%</span>
         </div>
-        <span class="sbg-percent">${pct}%</span>
-      </div>
-    `;
-  });
+      `;
+    });
   sbgSummaryEl.innerHTML = sbgHtml;
 
+  // students by SBG
   const sbgStudents = {};
   Object.keys(byStudent).forEach(name => {
     const level = computeStudentCurrentSbg(byStudent[name]);
@@ -150,30 +155,32 @@ function renderDashboard(
   });
 
   const bandsEl = document.getElementById("sbg-student-bands");
-  let bandsHtml = "";
-  Object.keys(sbgStudents)
-    .sort((a, b) => Number(a) - Number(b))
-    .forEach(key => {
-      const students = sbgStudents[key].sort((a, b) =>
-        a.name.localeCompare(b.name)
-      );
-      bandsHtml += `
-        <div class="sbg-band">
-          <div class="sbg-band-header">
-            <span>Level ${key}</span>
-            <span>${students.length} students</span>
+  if (bandsEl) {
+    let bandsHtml = "";
+    Object.keys(sbgStudents)
+      .sort((a, b) => Number(a) - Number(b))
+      .forEach(key => {
+        const students = sbgStudents[key].sort((a, b) =>
+          a.name.localeCompare(b.name)
+        );
+        bandsHtml += `
+          <div class="sbg-band">
+            <div class="sbg-band-header">
+              <span>Level ${key}</span>
+              <span>${students.length} students</span>
+            </div>
+            <div class="sbg-chip-row">
+              ${students
+                .map(
+                  s => `<span class="sbg-chip">${s.name} – ${s.level}</span>`
+                )
+                .join("")}
+            </div>
           </div>
-          <div class="sbg-chip-row">
-            ${students
-              .map(
-                s => `<span class="sbg-chip">${s.name} – ${s.level}</span>`
-              )
-              .join("")}
-          </div>
-        </div>
-      `;
-    });
-  bandsEl.innerHTML = bandsHtml;
+        `;
+      });
+    bandsEl.innerHTML = bandsHtml;
+  }
 
   overallStatsEl.innerHTML = `
     <p>Students: <strong>${studentNames.length}</strong></p>
