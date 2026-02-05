@@ -316,3 +316,19 @@ button:disabled {
   grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
   gap: 16px;
 }
+
+#sbg-doughnut {
+  max-width: 240px;   /* or whatever you like */
+  max-height: 240px;
+}
+
+.chart-wrapper {
+  width: 220px;
+  height: 220px;
+  margin: 0 auto;
+}
+
+.chart-wrapper canvas {
+  width: 100% !important;
+  height: 100% !important;
+}
