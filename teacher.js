@@ -73,7 +73,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 
-function renderStudentDetail(studentName) {
+function renderStudentDetail(studentName, studentSummaryEl, studentItemBody) {
   const records = allRecords.filter(r =>
     r.teacher === currentTeacher && r.studentName === studentName
   );
@@ -95,7 +95,6 @@ function renderStudentDetail(studentName) {
     <p>% correct: <strong>${percentCorrect}%</strong></p>
   `;
 
-  // item analysis for this student
   studentItemBody.innerHTML = "";
   records
     .sort((a, b) => a.questionId - b.questionId)
