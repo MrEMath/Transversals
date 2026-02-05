@@ -99,12 +99,84 @@ function renderDashboard(
 ) {
   const teacherRecords = allRecords.filter(r => r.teacher === currentTeacher);
 
+  const latestByStudentQuestion = buildLatestByStudentQuestion(teacherRecords);
+  buildSbgQuestionCards(teacherRecords, latestByStudentQuestion);
+
   const studentNames = [...new Set(teacherRecords.map(r => r.studentName))];
   const attemptIds = [...new Set(teacherRecords.map(r => r.attemptId))];
   const correctCount = teacherRecords.filter(r => r.correct).length;
   const percentCorrect = teacherRecords.length
     ? Math.round((correctCount / teacherRecords.length) * 100)
     : 0;
+
+  // build per-student current SBG
+  const byStudent = {};
+  teacherRecords.forEach(r => {
+    if (!byStudent[r.studentName]) byStudent[r.studentName] = [];
+    byStudent[r.studentName].push(r);
+  });
+
+  const sbgCounts = {};  // { '0.5': 3, '1.0': 5, ... }
+  Object.keys(byStudent).forEach(name => {
+    const level = computeStudentCurrentSbg(byStudent[name]);
+    const key = level.toString();
+    if (!sbgCounts[key]) sbgCounts[key] = 0;
+    sbgCounts[key]++;
+  });
+
+  // SBG summary bar
+  const sbgSummaryEl = document.getElementById("sbg-summary");
+  let sbgHtml = "";
+  Object.keys(sbgCounts).sort((a, b) => Number(a) - Number(b)).forEach(key => {
+    const count = sbgCounts[key];
+    const totalStudents = Object.keys(byStudent).length || 1;
+    const pct = Math.round((count / totalStudents) * 100);
+    sbgHtml += `
+      <div class="sbg-row">
+        <span class="sbg-label">Level ${key}</span>
+        <div class="sbg-bar">
+          <div class="sbg-bar-fill" style="width:${pct}%"></div>
+        </div>
+        <span class="sbg-percent">${pct}%</span>
+      </div>
+    `;
+  });
+  sbgSummaryEl.innerHTML = sbgHtml;
+
+  // students by SBG
+  const sbgStudents = {}; // { '0.5': [ {name, level}, ... ], ... }
+  Object.keys(byStudent).forEach(name => {
+    const level = computeStudentCurrentSbg(byStudent[name]);
+    const key = level.toString();
+    if (!sbgStudents[key]) sbgStudents[key] = [];
+    sbgStudents[key].push({ name, level });
+  });
+
+  const bandsEl = document.getElementById("sbg-student-bands");
+  let bandsHtml = "";
+  Object.keys(sbgStudents)
+    .sort((a, b) => Number(a) - Number(b))
+    .forEach(key => {
+      const students = sbgStudents[key].sort((a, b) =>
+        a.name.localeCompare(b.name)
+      );
+      bandsHtml += `
+        <div class="sbg-band">
+          <div class="sbg-band-header">
+            <span>Level ${key}</span>
+            <span>${students.length} students</span>
+          </div>
+          <div class="sbg-chip-row">
+            ${students
+              .map(
+                s => `<span class="sbg-chip">${s.name} – ${s.level}</span>`
+              )
+              .join("")}
+          </div>
+        </div>
+      `;
+    });
+  bandsEl.innerHTML = bandsHtml;
 
   overallStatsEl.innerHTML = `
     <p>Students: <strong>${studentNames.length}</strong></p>
@@ -116,6 +188,76 @@ function renderDashboard(
   populateStudentDropdown(studentNames, studentSelect);
   studentSummaryEl.innerHTML = "";
   studentItemBody.innerHTML = "";
+}
+
+function buildSbgQuestionCards(teacherRecords, latestByStudentQuestion) {
+  const container = document.getElementById("sbg-question-cards");
+  container.innerHTML = "";
+
+  const sbgGroups = {}; // { '1.0': { '3': [records...], ... }, ... }
+
+  teacherRecords.forEach(r => {
+    const sbgKey = r.sbg.toString();
+    if (!sbgGroups[sbgKey]) sbgGroups[sbgKey] = {};
+    if (!sbgGroups[sbgKey][r.questionId]) sbgGroups[sbgKey][r.questionId] = [];
+    sbgGroups[sbgKey][r.questionId].push(r);
+  });
+
+  Object.keys(sbgGroups)
+    .sort((a, b) => Number(a) - Number(b))
+    .forEach(sbgKey => {
+      const questions = sbgGroups[sbgKey];
+      const card = document.createElement("div");
+      card.className = "sbg-card";
+
+      let inner = `<div class="sbg-card-header">Level ${sbgKey}</div>`;
+      inner += `<div class="sbg-card-questions">`;
+
+      Object.keys(questions)
+        .sort((a, b) => Number(a) - Number(b))
+        .forEach(qid => {
+          const qRecords = questions[qid];
+
+          const correct = qRecords.filter(r => r.correct).length;
+          const total = qRecords.length;
+          const pct = total ? Math.round((correct / total) * 100) : 0;
+
+          const byStudent = {};
+          qRecords.forEach(r => {
+            const key = `${r.studentName}|${r.questionId}`;
+            const latest = latestByStudentQuestion[key];
+            if (!latest) return;
+            if (!byStudent[latest.studentName]) byStudent[latest.studentName] = latest;
+          });
+
+          const students = Object.values(byStudent).sort((a, b) =>
+            a.studentName.localeCompare(b.studentName)
+          );
+
+          inner += `
+            <div class="sbg-question-tile">
+              <div class="sbg-question-header">
+                <span>Q${qid}</span>
+                <span>${pct}% correct</span>
+              </div>
+              <div class="sbg-question-students">
+                ${students
+                  .map(
+                    r =>
+                      `<div class="sbg-question-student">${r.studentName} – ${
+                        r.correct ? "✔" : "✘"
+                      }</div>`
+                  )
+                  .join("")}
+              </div>
+            </div>
+          `;
+        });
+
+      inner += `</div>`;
+      card.innerHTML = inner;
+      container.appendChild(card);
+    });
 }
 
 function renderItemAnalysis(records, itemAnalysisBody) {
@@ -154,6 +296,20 @@ function populateStudentDropdown(studentNames, studentSelect) {
     opt.textContent = name;
     studentSelect.appendChild(opt);
   });
+}
+
+function buildLatestByStudentQuestion(teacherRecords) {
+  const latest = {}; // key: student|question -> record
+
+  teacherRecords.forEach(r => {
+    const key = `${r.studentName}|${r.questionId}`;
+    if (!latest[key]) {
+      latest[key] = r;
+    } else if (r.attemptId > latest[key].attemptId) {
+      latest[key] = r;
+    }
+  });
+  return latest;
 }
 
 // ---------- STUDENT DETAIL ----------
@@ -226,4 +382,23 @@ function renderStudentAttemptItems(studentName, attemptId, studentItemBody) {
       `;
       studentItemBody.appendChild(tr);
     });
+}
+
+function computeStudentCurrentSbg(recordsForStudent) {
+  const byAttempt = {};
+  recordsForStudent.forEach(r => {
+    if (!byAttempt[r.attemptId]) byAttempt[r.attemptId] = [];
+    byAttempt[r.attemptId].push(r);
+  });
+  const attemptIds = Object.keys(byAttempt).sort();
+  const latest = byAttempt[attemptIds[attemptIds.length - 1]];
+
+  const correctItems = latest.filter(r => r.correct);
+  if (!correctItems.length) return 0;
+
+  const avgSbg =
+    correctItems.reduce((sum, r) => sum + (r.sbg || 0), 0) /
+    correctItems.length;
+
+  return Number(avgSbg.toFixed(1));
 }

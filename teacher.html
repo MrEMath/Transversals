@@ -41,6 +41,11 @@
         <div id="overall-stats"></div>
       </section>
 
+      <section>
+        <h3>SBG Levels</h3>
+        <div id="sbg-summary"></div>
+      </section>
+
       <!-- Item analysis for entire class -->
       <section>
         <h3>Item Analysis (All Students)</h3>
@@ -50,7 +55,6 @@
               <th>Q#</th>
               <th>SBG</th>
               <th>% Correct</th>
-              <th>Avg Attempts</th>
             </tr>
           </thead>
           <tbody></tbody>
@@ -59,31 +63,36 @@
 
       <!-- Individual student selector + detail -->
       <section>
-  <h3>Individual Student</h3>
-  <label for="student-select">Student:</label>
-  <select id="student-select">
-    <option value="">Select a student</option>
-  </select>
+        <h3>Individual Student</h3>
+        <label for="student-select">Student:</label>
+        <select id="student-select">
+          <option value="">Select a student</option>
+        </select>
 
-  <div id="student-summary"></div>
+        <div id="student-summary"></div>
 
-  <label for="attempt-select">Attempt:</label>
-  <select id="attempt-select">
-    <option value="">Select an attempt</option>
-  </select>
+        <label for="attempt-select">Attempt:</label>
+        <select id="attempt-select">
+          <option value="">Select an attempt</option>
+        </select>
 
-  <h4>Item Analysis for Attempt</h4>
-  <table id="student-item-table">
-    <thead>
-      <tr>
-        <th>Q#</th>
-        <th>SBG</th>
-        <th>Correct?</th>
-      </tr>
-    </thead>
-    <tbody></tbody>
-  </table>
-</section>
+        <h4>Item Analysis for Attempt</h4>
+        <table id="student-item-table">
+          <thead>
+            <tr>
+              <th>Q#</th>
+              <th>SBG</th>
+              <th>Correct?</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </section>
+
+      <section>
+        <h3>SBG Question Cards</h3>
+        <div id="sbg-question-cards"></div>
+      </section>
     </section>
   </main>
 
