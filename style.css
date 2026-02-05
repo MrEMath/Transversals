@@ -289,3 +289,30 @@ button:disabled {
 .sbg-question-student {
   font-size: 0.8rem;
 }
+.card {
+  background-color: #ffffff;
+  border: 1px solid #918e8e;
+  border-radius: 8px;
+  padding: 16px 20px;
+  margin-bottom: 16px;
+}
+
+/* Header text upper-right */
+.card-header {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 8px;
+}
+
+.card-header h3 {
+  margin: 0;
+  color: #3d2c2c;
+  font-weight: 600;
+}
+
+/* Optional: layout for cards side-by-side on wide screens */
+#teacher-dashboard {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 16px;
+}

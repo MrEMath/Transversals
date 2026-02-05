@@ -124,6 +124,24 @@ function renderDashboard(
     sbgCounts[key]++;
   });
 
+  // Build bands for doughnut
+  const bands = {
+    '0.0–0.5': 0,
+    '1.0–1.5': 0,
+    '2.0–2.5': 0,
+    '3.0': 0
+  };
+
+  Object.entries(sbgCounts).forEach(([levelStr, count]) => {
+    const level = parseFloat(levelStr);
+    if (level <= 0.5) bands['0.0–0.5'] += count;
+    else if (level <= 1.5) bands['1.0–1.5'] += count;
+    else if (level <= 2.5) bands['2.0–2.5'] += count;
+    else bands['3.0'] += count;
+  });
+
+  renderSbgDoughnut(bands);
+
   // SBG summary bar
   const sbgSummaryEl = document.getElementById("sbg-summary");
   let sbgHtml = "";
@@ -192,6 +210,53 @@ function renderDashboard(
   populateStudentDropdown(studentNames, studentSelect);
   studentSummaryEl.innerHTML = "";
   studentItemBody.innerHTML = "";
+}
+
+let sbgDoughnutChart = null;
+
+function renderSbgDoughnut(bands) {
+  const ctx = document.getElementById("sbg-doughnut");
+  if (!ctx) return;
+
+  const labels = ['SBG 0.0–0.5', 'SBG 1.0–1.5', 'SBG 2.0–2.5', 'SBG 3.0'];
+  const data = [
+    bands['0.0–0.5'],
+    bands['1.0–1.5'],
+    bands['2.0–2.5'],
+    bands['3.0']
+  ];
+
+  const colors = ['#F04923', '#FFBF00', '#00A86B', '#0067A5'];
+
+  if (sbgDoughnutChart) {
+    sbgDoughnutChart.data.datasets[0].data = data;
+    sbgDoughnutChart.update();
+    return;
+  }
+
+  sbgDoughnutChart = new Chart(ctx, {
+    type: 'doughnut',
+    data: {
+      labels,
+      datasets: [{
+        data,
+        backgroundColor: colors,
+        borderColor: '#ffffff',
+        borderWidth: 2
+      }]
+    },
+    options: {
+      plugins: {
+        legend: {
+          position: 'bottom',
+          labels: {
+            color: '#3d2c2c'
+          }
+        }
+      },
+      cutout: '60%'
+    }
+  });
 }
 
 function buildSbgQuestionCards(teacherRecords, latestByStudentQuestion) {
