@@ -470,6 +470,8 @@ const teacherSelectEl = document.getElementById("teacher-select");
 const studentSelectEl = document.getElementById("student-select");
 const loginButton = document.getElementById("login-button");
 const loginError = document.getElementById("login-error");
+const submitPracticeBtn = document.getElementById("submit-practice");
+const summaryScreen = document.getElementById("summary-screen");
 
 loginButton.addEventListener("click", () => {
   console.log("Login button clicked");
@@ -1004,6 +1006,61 @@ nextBtn.addEventListener("click", () => {
     renderQuestion();
   }
 });
+submitPracticeBtn.addEventListener("click", () => {
+  // mark unanswered as incorrect, 1 attempt
+  questionStates.forEach((state, index) => {
+    if (!state.answered) {
+      state.answered = true;
+      state.correct = false;
+      state.attempts = 1;
+      if (studentAnswers[index] === null) {
+        studentAnswers[index] = null;
+      }
+    }
+  });
+
+  updateProgress();
+
+  const total = questions.length;
+  const correctCount = questionStates.filter(s => s.correct).length;
+  const percentCorrect = Math.round((correctCount / total) * 100);
+
+  let html = "";
+  html += `<h2>Practice Results</h2>`;
+  html += `<p>You answered ${correctCount} out of ${total} correctly (${percentCorrect}%).</p>`;
+
+  html += `
+    <h3>Item Analysis</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>Q#</th>
+          <th>SBG</th>
+          <th>Correct?</th>
+        </tr>
+      </thead>
+      <tbody>
+  `;
+
+  questionStates.forEach((s, index) => {
+    const q = questions[index];
+    html += `
+      <tr>
+        <td>${index + 1}</td>
+        <td>${q.sbg}</td>
+        <td>${s.correct ? "✔" : "✘"}</td>
+      </tr>
+    `;
+  });
+
+  html += `</tbody></table>`;
+  summaryScreen.innerHTML = html;
+  summaryScreen.style.display = "block";
+
+  // save for teacher dashboard
+  finishPractice();
+});
+
 
 // ----- INITIALIZE -----
 // ----- INITIALIZE -----
