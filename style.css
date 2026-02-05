@@ -215,3 +215,77 @@ button:disabled {
   opacity: 0.6;
   cursor: default;
 }
+.sbg-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0.25rem 0;
+}
+
+.sbg-label { width: 80px; font-weight: 600; }
+.sbg-bar {
+  flex: 1;
+  background: #eee;
+  border-radius: 999px;
+  overflow: hidden;
+  height: 10px;
+}
+.sbg-bar-fill {
+  height: 100%;
+  background: #4caf50;
+}
+
+.sbg-band {
+  border: 1px solid #cddc39;
+  border-radius: 4px;
+  margin: 0.5rem 0;
+  padding: 0.25rem 0.5rem;
+}
+.sbg-band-header {
+  display: flex;
+  justify-content: space-between;
+  font-weight: 600;
+}
+.sbg-chip-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  margin-top: 0.25rem;
+}
+.sbg-chip {
+  border: 1px solid #cddc39;
+  border-radius: 3px;
+  padding: 0.1rem 0.4rem;
+  font-size: 0.8rem;
+}
+
+.sbg-card {
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  margin: 0.75rem 0;
+  padding: 0.5rem;
+}
+.sbg-card-header {
+  font-weight: 600;
+  margin-bottom: 0.25rem;
+}
+.sbg-card-questions {
+  display: flex;
+  gap: 0.5rem;
+  overflow-x: auto;
+}
+.sbg-question-tile {
+  min-width: 160px;
+  border: 1px solid #eee;
+  border-radius: 4px;
+  padding: 0.25rem 0.4rem;
+}
+.sbg-question-header {
+  display: flex;
+  justify-content: space-between;
+  font-weight: 600;
+  margin-bottom: 0.15rem;
+}
+.sbg-question-student {
+  font-size: 0.8rem;
+}
