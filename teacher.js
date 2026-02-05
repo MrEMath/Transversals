@@ -27,6 +27,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const studentSelect = document.getElementById("student-select");
   const studentSummaryEl = document.getElementById("student-summary");
   const studentItemBody = document.querySelector("#student-item-table tbody");
+  const attemptSelect = document.getElementById("attempt-select");
 
   loadData();
 
@@ -63,12 +64,27 @@ document.addEventListener("DOMContentLoaded", () => {
 
   studentSelect.addEventListener("change", () => {
     const name = studentSelect.value;
-    if (!name) {
-      studentSummaryEl.innerHTML = "";
+    studentSummaryEl.innerHTML = "";
+    studentItemBody.innerHTML = "";
+    attemptSelect.innerHTML = '<option value="">Select an attempt</option>';
+
+    if (!name) return;
+
+    renderStudentSummaryAndAttempts(
+      name,
+      studentSummaryEl,
+      attemptSelect
+    );
+  });
+
+  attemptSelect.addEventListener("change", () => {
+    const attemptId = attemptSelect.value;
+    const studentName = attemptSelect._studentName;
+    if (!attemptId || !studentName) {
       studentItemBody.innerHTML = "";
       return;
     }
-    renderStudentDetail(name, studentSummaryEl, studentItemBody);
+    renderStudentAttemptItems(studentName, attemptId, studentItemBody);
   });
 });
 
@@ -84,7 +100,7 @@ function renderDashboard(
   const teacherRecords = allRecords.filter(r => r.teacher === currentTeacher);
 
   const studentNames = [...new Set(teacherRecords.map(r => r.studentName))];
-  const totalAttempts = teacherRecords.reduce((sum, r) => sum + (r.attempts || 1), 0);
+  const attemptIds = [...new Set(teacherRecords.map(r => r.attemptId))];
   const correctCount = teacherRecords.filter(r => r.correct).length;
   const percentCorrect = teacherRecords.length
     ? Math.round((correctCount / teacherRecords.length) * 100)
@@ -92,8 +108,8 @@ function renderDashboard(
 
   overallStatsEl.innerHTML = `
     <p>Students: <strong>${studentNames.length}</strong></p>
-    <p>Total attempts: <strong>${totalAttempts}</strong></p>
-    <p>Overall % correct: <strong>${percentCorrect}%</strong></p>
+    <p>Total practice attempts: <strong>${attemptIds.length}</strong></p>
+    <p>Average accuracy (all items): <strong>${percentCorrect}%</strong></p>
   `;
 
   renderItemAnalysis(teacherRecords, itemAnalysisBody);
@@ -116,9 +132,8 @@ function renderItemAnalysis(records, itemAnalysisBody) {
     .forEach(qid => {
       const group = byQuestion[qid];
       const correct = group.filter(r => r.correct).length;
-      const percent = group.length ? Math.round((correct / group.length) * 100) : 0;
-      const attemptsAvg =
-        group.reduce((sum, r) => sum + (r.attempts || 1), 0) / group.length;
+      const total = group.length;
+      const percent = total ? Math.round((correct / total) * 100) : 0;
       const sbgLevel = group[0].sbg;
 
       const tr = document.createElement("tr");
@@ -126,7 +141,6 @@ function renderItemAnalysis(records, itemAnalysisBody) {
         <td>${qid}</td>
         <td>${sbgLevel}</td>
         <td>${percent}%</td>
-        <td>${attemptsAvg.toFixed(1)}</td>
       `;
       itemAnalysisBody.appendChild(tr);
     });
@@ -144,27 +158,61 @@ function populateStudentDropdown(studentNames, studentSelect) {
 
 // ---------- STUDENT DETAIL ----------
 
-function renderStudentDetail(studentName, studentSummaryEl, studentItemBody) {
+function renderStudentSummaryAndAttempts(studentName, studentSummaryEl, attemptSelect) {
   const records = allRecords.filter(r =>
     r.teacher === currentTeacher && r.studentName === studentName
   );
-
   if (!records.length) {
     studentSummaryEl.textContent = "No data for this student.";
-    studentItemBody.innerHTML = "";
     return;
   }
 
-  const attemptsTotal = records.reduce((sum, r) => sum + (r.attempts || 1), 0);
-  const correct = records.filter(r => r.correct).length;
-  const percentCorrect = Math.round((correct / records.length) * 100);
+  const byAttempt = {};
+  records.forEach(r => {
+    if (!byAttempt[r.attemptId]) byAttempt[r.attemptId] = [];
+    byAttempt[r.attemptId].push(r);
+  });
+
+  const attemptIds = Object.keys(byAttempt).sort();
+  const totalAttempts = attemptIds.length;
+
+  const latestId = attemptIds[attemptIds.length - 1];
+  const latest = byAttempt[latestId];
+  const correctItems = latest.filter(r => r.correct);
+  const currentSbgLevel =
+    correctItems.length
+      ? (
+          correctItems.reduce((sum, r) => sum + (r.sbg || 0), 0) /
+          correctItems.length
+        ).toFixed(2)
+      : "0.0";
 
   studentSummaryEl.innerHTML = `
     <p>Student: <strong>${studentName}</strong></p>
-    <p>Items attempted: <strong>${records.length}</strong></p>
-    <p>Total attempts: <strong>${attemptsTotal}</strong></p>
-    <p>% correct: <strong>${percentCorrect}%</strong></p>
+    <p>Practice attempts: <strong>${totalAttempts}</strong></p>
+    <p>Current SBG level: <strong>${currentSbgLevel}</strong></p>
   `;
+
+  attemptSelect.innerHTML = '<option value="">Select an attempt</option>';
+  attemptIds.forEach(id => {
+    const any = byAttempt[id][0];
+    const date = new Date(any.timestamp);
+    const label = date.toLocaleString();
+    const opt = document.createElement("option");
+    opt.value = id;
+    opt.textContent = label;
+    attemptSelect.appendChild(opt);
+  });
+
+  attemptSelect._studentName = studentName;
+}
+
+function renderStudentAttemptItems(studentName, attemptId, studentItemBody) {
+  const records = allRecords.filter(r =>
+    r.teacher === currentTeacher &&
+    r.studentName === studentName &&
+    r.attemptId === Number(attemptId)
+  );
 
   studentItemBody.innerHTML = "";
   records
@@ -174,7 +222,6 @@ function renderStudentDetail(studentName, studentSummaryEl, studentItemBody) {
       tr.innerHTML = `
         <td>${r.questionId}</td>
         <td>${r.sbg}</td>
-        <td>${r.attempts || 1}</td>
         <td>${r.correct ? "✔" : "✘"}</td>
       `;
       studentItemBody.appendChild(tr);
