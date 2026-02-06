@@ -206,8 +206,10 @@ function renderDashboard(
     <p>Average accuracy (all items): <strong>${percentCorrect}%</strong></p>
   `;
 
+if (itemAnalysisBody) {
   renderItemAnalysis(teacherRecords, itemAnalysisBody);
-  renderItemBarChart(teacherRecords);
+}
+renderItemBarChart(teacherRecords);
   populateStudentDropdown(studentNames, studentSelect);
   studentSummaryEl.innerHTML = "";
   studentItemBody.innerHTML = "";

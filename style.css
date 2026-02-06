@@ -346,4 +346,10 @@ button:disabled {
   width: 100% !important;
   height: 100% !important;
 }
+#item-analysis-table-wrapper {
+  display: none;
+}
+#item-analysis-table-wrapper {
+  display: none;
+}
 
