@@ -214,6 +214,8 @@ function renderDashboard(
 
 let sbgDoughnutChart = null;
 
+let sbgDoughnutChart = null;
+
 function renderSbgDoughnut(bands) {
   const ctx = document.getElementById("sbg-doughnut");
   if (!ctx) return;
@@ -225,8 +227,9 @@ function renderSbgDoughnut(bands) {
     bands['2.0–2.5'],
     bands['3.0']
   ];
-
   const colors = ['#F04923', '#FFBF00', '#00A86B', '#0067A5'];
+
+  const total = data.reduce((sum, v) => sum + v, 0) || 1;
 
   if (sbgDoughnutChart) {
     sbgDoughnutChart.data.datasets[0].data = data;
@@ -249,13 +252,43 @@ function renderSbgDoughnut(bands) {
       plugins: {
         legend: {
           position: 'bottom',
+          align: 'center',              // center legend block
           labels: {
-            color: '#3d2c2c'
+            textAlign: 'left',          // left-align each row
+            color: '#3d2c2c',
+            generateLabels(chart) {
+              const ds = chart.data.datasets[0];
+              const values = ds.data;
+              const totalLocal = values.reduce((s, v) => s + v, 0) || 1;
+              return chart.data.labels.map((label, i) => {
+                const value = values[i] || 0;
+                const pct = ((value / totalLocal) * 100).toFixed(0) + '%';
+                return {
+                  text: `${label} – ${pct}`,
+                  fillStyle: ds.backgroundColor[i],
+                  strokeStyle: '#ffffff',
+                  lineWidth: 2,
+                  hidden: isNaN(value) || value === 0,
+                  index: i
+                };
+              });
+            }
+          }
+        },
+        datalabels: {
+          color: '#ffffff',
+          font: { weight: 'bold' },
+          formatter(value, context) {
+            const dataset = context.dataset.data;
+            const sum = dataset.reduce((a, b) => a + b, 0) || 1;
+            const pct = (value / sum) * 100;
+            return value ? `${pct.toFixed(0)}%` : '';
           }
         }
       },
       cutout: '60%'
-    }
+    },
+    plugins: [ChartDataLabels]
   });
 }
 
