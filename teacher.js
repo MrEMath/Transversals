@@ -214,8 +214,6 @@ function renderDashboard(
 
 let sbgDoughnutChart = null;
 
-let sbgDoughnutChart = null;
-
 function renderSbgDoughnut(bands) {
   const ctx = document.getElementById("sbg-doughnut");
   if (!ctx) return;
