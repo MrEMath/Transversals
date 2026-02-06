@@ -207,6 +207,7 @@ function renderDashboard(
   `;
 
   renderItemAnalysis(teacherRecords, itemAnalysisBody);
+  renderItemBarChart(teacherRecords);
   populateStudentDropdown(studentNames, studentSelect);
   studentSummaryEl.innerHTML = "";
   studentItemBody.innerHTML = "";
@@ -287,6 +288,84 @@ function renderSbgDoughnut(bands) {
       cutout: '60%'
     },
     plugins: [ChartDataLabels]
+  });
+}
+
+let itemBarChart = null;
+
+function renderItemBarChart(records) {
+  const ctx = document.getElementById("item-bar-chart");
+  if (!ctx) return;
+
+  // group by questionId
+  const byQuestion = {};
+  records.forEach(r => {
+    const qid = r.questionId;
+    if (!byQuestion[qid]) byQuestion[qid] = [];
+    byQuestion[qid].push(r);
+  });
+
+  const labels = [];
+  const percents = [];
+  const sbgLabels = [];
+
+  Object.keys(byQuestion)
+    .sort((a, b) => Number(a) - Number(b))
+    .forEach(qid => {
+      const group = byQuestion[qid];
+      const correct = group.filter(r => r.correct).length;
+      const total = group.length || 1;
+      const percent = Math.round((correct / total) * 100);
+      labels.push(`Q${qid}`);
+      percents.push(percent);
+      sbgLabels.push(group[0].sbg);
+    });
+
+  const bgColors = sbgLabels.map(level => {
+    if (level <= 0.5) return '#F04923';   // 0.0–0.5
+    if (level <= 1.5) return '#FFBF00';   // 1.0–1.5
+    if (level <= 2.5) return '#00A86B';   // 2.0–2.5
+    return '#0067A5';                     // 3.0+
+  });
+
+  if (itemBarChart) {
+    itemBarChart.data.labels = labels;
+    itemBarChart.data.datasets[0].data = percents;
+    itemBarChart.data.datasets[0].backgroundColor = bgColors;
+    itemBarChart.update();
+    return;
+  }
+
+  itemBarChart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [{
+        label: '% Correct',
+        data: percents,
+        backgroundColor: bgColors
+      }]
+    },
+    options: {
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label(context) {
+              const idx = context.dataIndex;
+              return `Q${labels[idx]} (SBG ${sbgLabels[idx]}): ${percents[idx]}%`;
+            }
+          }
+        }
+      },
+      scales: {
+        y: {
+          beginAtZero: true,
+          max: 100,
+          ticks: { callback: v => v + '%' }
+        }
+      }
+    }
   });
 }
 

@@ -318,8 +318,8 @@ button:disabled {
 }
 
 #sbg-doughnut {
-  max-width: 240px;   /* or whatever you like */
-  max-height: 240px;
+  max-width: 300px;   /* or whatever you like */
+  max-height: 300px;
 }
 
 .chart-wrapper {
