@@ -352,4 +352,22 @@ button:disabled {
 #item-analysis-table-section {
   display: none;
 }
+/* two half-width cards on large screens */
+.half-card {
+  grid-column: span 1;
+}
+
+/* ensure previous cards span full width if desired */
+.overall-card,
+.sbg-card,
+.item-analysis-card {
+  grid-column: span 2;
+}
+
+/* If you want explicit 2-column layout on wider screens: */
+@media (min-width: 900px) {
+  #teacher-dashboard {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
 

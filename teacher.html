@@ -78,39 +78,47 @@
   </table>
 </section>
 
-      <!-- Individual student selector + detail -->
-      <section>
-        <h3>Individual Student</h3>
-        <label for="student-select">Student:</label>
-        <select id="student-select">
-          <option value="">Select a student</option>
-        </select>
+<!-- Individual student card -->
+<section class="card half-card">
+  <div class="card-header">
+    <h3>Individual Student</h3>
+  </div>
+  <div class="card-body">
+    <label for="student-select">Student:</label>
+    <select id="student-select">
+      <option value="">Select a student</option>
+    </select>
 
-        <div id="student-summary"></div>
+    <div id="student-summary"></div>
 
-        <label for="attempt-select">Attempt:</label>
-        <select id="attempt-select">
-          <option value="">Select an attempt</option>
-        </select>
+    <label for="attempt-select">Attempt:</label>
+    <select id="attempt-select">
+      <option value="">Select an attempt</option>
+    </select>
 
-        <h4>Item Analysis for Attempt</h4>
-        <table id="student-item-table">
-          <thead>
-            <tr>
-              <th>Q#</th>
-              <th>SBG</th>
-              <th>Correct?</th>
-            </tr>
-          </thead>
-          <tbody></tbody>
-        </table>
-      </section>
+    <h4>Item Analysis for Attempt</h4>
+    <table id="student-item-table">
+      <thead>
+        <tr>
+          <th>Q#</th>
+          <th>SBG</th>
+          <th>Correct?</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+</section>
 
-      <section>
-        <h3>SBG Question Cards</h3>
-        <div id="sbg-question-cards"></div>
-      </section>
-    </section>
+<!-- SBG Question Cards card -->
+<section class="card half-card">
+  <div class="card-header">
+    <h3>SBG Question Cards</h3>
+  </div>
+  <div class="card-body">
+    <div id="sbg-question-cards"></div>
+  </div>
+</section>
   </main>
 
   <footer>
