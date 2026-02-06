@@ -296,6 +296,10 @@ let itemBarChart = null;
 function renderItemBarChart(records) {
   const ctx = document.getElementById("item-bar-chart");
   if (!ctx) return;
+  if (!records || !records.length) {
+    ctx.parentElement.innerHTML = "<p>No item data yet.</p>";
+    return;
+  }
 
   // group by questionId
   const byQuestion = {};
