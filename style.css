@@ -332,3 +332,18 @@ button:disabled {
   width: 100% !important;
   height: 100% !important;
 }
+
+#item-bar-chart {
+  max-height: 180px;      /* try 140–200px until it feels right */
+}
+
+/* If you want stricter control: */
+.item-analysis-card .card-body {
+  height: 200px;          /* total card body height */
+}
+
+.item-analysis-card .card-body canvas {
+  width: 100% !important;
+  height: 100% !important;
+}
+
