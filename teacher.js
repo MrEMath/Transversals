@@ -641,6 +641,7 @@ const ITEM_SCREENSHOTS = {
 
 let currentStudentItems = []; // {questionId, sbg, percent}
 let currentItemIndex = 0;
+updateItemFlipcard(); // initialize with placeholder
 
 function updateItemFlipcard() {
   const imgEl = document.getElementById("item-screenshot");
