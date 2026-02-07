@@ -337,15 +337,58 @@ button:disabled {
   max-height: 180px;      /* try 140–200px until it feels right */
 }
 
+/* Chart.js legend horizontal row under doughnut */
+.chart-wrapper + div .legend, /* fallback if you had custom legend */
+.chart-wrapper + .chartjs-size-monitor {
+  /* ignore if not present */
+}
+
+/* generic Chart.js legend tweak */
+.chart-wrapper + div ul,
+.chart-wrapper + div li {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+/* target Chart.js legend container under doughnut */
+.sbg-card .card-body .chart-wrapper + div {
+  display: flex;
+  justify-content: center;
+}
+
+.sbg-card .card-body .chart-wrapper + div ul {
+  display: flex;
+  flex-wrap: wrap;          /* allow wrapping if narrow */
+  gap: 0.5rem 1rem;
+}
+
+/* center the SBG strip inside the Individual Student card */
+#student-item-strip {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 0.5rem;
+  margin: 0.5rem auto 0;
+  max-width: 90%;
+  overflow-x: auto;
+}
+
+.sbg-strip-card {
+  flex: 0 0 140px;
+  margin: 0;
+}
+
 /* If you want stricter control: */
 .item-analysis-card .card-body {
-  height: 200px;          /* total card body height */
+  height: 200px;           /* total card body height */
 }
 
 .item-analysis-card .card-body canvas {
   width: 100% !important;
   height: 100% !important;
 }
+
 #item-analysis-table-wrapper {
   display: none;
 }
@@ -400,6 +443,8 @@ button:disabled {
 /* horizontal SBG strip inside Individual Student card */
 #student-item-strip {
   display: flex;
+  justify-content: center;
+  align-items: flex-start;
   gap: 0.5rem;
   margin-top: 0.5rem;
   overflow-x: auto;
@@ -407,6 +452,7 @@ button:disabled {
 
 .sbg-strip-card {
   flex: 0 0 140px;
+  margin: 0;
   border-radius: 18px;
   padding: 6px 10px 10px;
   border: 3px solid #c51d34;   /* default red; overridden per level */
