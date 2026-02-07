@@ -464,8 +464,9 @@ button:disabled {
 .flipcard-zoom-popup {
   display: none;
   position: absolute;
-  top: 0;
-  left: 105%;          /* to the right of the card */
+  top: 50%;
+  left: 50%;
+  transform: translate (-50%, -50%);          /* to the right of the card */
   z-index: 1000;
   border: 2px solid #444;
   background: #fff;
@@ -474,8 +475,8 @@ button:disabled {
 }
 
 .flipcard-zoom-popup img {
-  max-width: 450px;    /* adjust size as needed */
-  max-height: 450px;
+  max-width: 150%;    /* adjust size as needed */
+  max-height: 150%;
 }
 
 /* Show popup on hover */
