@@ -64,7 +64,6 @@ document.addEventListener("DOMContentLoaded", () => {
       itemAnalysisBody,
       studentSelect,
       studentSummaryEl,
-      studentItemBody
     );
   });
 
@@ -72,7 +71,6 @@ document.addEventListener("DOMContentLoaded", () => {
   studentSelect.addEventListener("change", () => {
     const name = studentSelect.value;
     studentSummaryEl.innerHTML = "";
-    studentItemBody.innerHTML = "";
     attemptSelect.innerHTML = '<option value="">Select an attempt</option>';
 
     if (!name) {
@@ -94,10 +92,8 @@ document.addEventListener("DOMContentLoaded", () => {
     const attemptId = attemptSelect.value;
     const studentName = attemptSelect._studentName;
     if (!attemptId || !studentName) {
-      studentItemBody.innerHTML = "";
       return;
     }
-    renderStudentAttemptItems(studentName, attemptId, studentItemBody);
     // overall per-item accuracy is already over all attempts; no need to recompute here
   });
 
@@ -130,7 +126,6 @@ function renderDashboard(
   itemAnalysisBody,
   studentSelect,
   studentSummaryEl,
-  studentItemBody
 ) {
   const teacherRecords = allRecords.filter(r => r.teacher === currentTeacher);
 
@@ -213,7 +208,6 @@ function renderDashboard(
 
   populateStudentDropdown(studentNames, studentSelect);
   studentSummaryEl.innerHTML = "";
-  studentItemBody.innerHTML = "";
 }
 
 // ---------------- SBG DOUGHNUT ----------------
@@ -561,14 +555,13 @@ function renderStudentSummaryAndAttempts(studentName, studentSummaryEl, attemptS
   attemptSelect._studentName = studentName;
 }
 
-function renderStudentAttemptItems(studentName, attemptId, studentItemBody) {
+function renderStudentAttemptItems(studentName, attemptId) {
   const records = allRecords.filter(r =>
     r.teacher === currentTeacher &&
     r.studentName === studentName &&
     r.timestamp === attemptId
   );
 
-  // new container instead of table body
   const strip = document.getElementById("student-item-strip");
   if (!strip) return;
   strip.innerHTML = "";
@@ -578,7 +571,6 @@ function renderStudentAttemptItems(studentName, attemptId, studentItemBody) {
     return;
   }
 
-  // group by SBG level and preserve item order within level
   const bySbg = {};
   records
     .sort((a, b) => a.sbg - b.sbg || a.questionId - b.questionId)
@@ -596,26 +588,20 @@ function renderStudentAttemptItems(studentName, attemptId, studentItemBody) {
       const card = document.createElement("div");
       card.className = "sbg-strip-card " + sbgStripClass(parseFloat(levelKey));
 
-      // header: e.g., "SBG 0.5"
       const header = document.createElement("div");
       header.className = "sbg-strip-header";
       header.textContent = `SBG ${levelKey}`;
       card.appendChild(header);
 
-      // row of items 1–5 with ✔/✘ in boxes
       const row = document.createElement("div");
       row.className = "sbg-strip-items";
 
-      // indices (1–5) always shown
-      for (let i = 1; i <= 5; i++) {
+      group.forEach((r, idx) => {
         const idxSpan = document.createElement("span");
         idxSpan.className = "index";
-        idxSpan.textContent = i;
+        idxSpan.textContent = r.questionId; // or idx+1 if you want 1–5
         row.appendChild(idxSpan);
-      }
 
-      // boxes driven by the actual items at that level
-      group.forEach(r => {
         const box = document.createElement("div");
         box.className = "box";
         box.textContent = r.correct ? "✔" : "✘";
@@ -625,6 +611,15 @@ function renderStudentAttemptItems(studentName, attemptId, studentItemBody) {
       card.appendChild(row);
       strip.appendChild(card);
     });
+}
+
+function sbgStripClass(level) {
+  if (level <= 0.5) return "sbg-strip-0-5";
+  if (level <= 1.0) return "sbg-strip-1-0";
+  if (level <= 1.5) return "sbg-strip-1-5";
+  if (level <= 2.0) return "sbg-strip-2-0";
+  if (level <= 2.5) return "sbg-strip-2-5";
+  return "sbg-strip-3-0";
 }
 
 // helper to map level -> color class
