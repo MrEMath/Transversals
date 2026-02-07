@@ -17,6 +17,12 @@ function loadData() {
   const raw = localStorage.getItem("reflectionPracticeResults");
   allRecords = raw ? JSON.parse(raw) : [];
 }
+function getAttemptKey(ts) {
+  const d = new Date(ts);
+  // round down to nearest minute so small ms differences collapse
+  d.setSeconds(0, 0);
+  return d.getTime();  // numeric key
+}
 
 // ---------------- DOM READY ----------------
 
@@ -147,7 +153,7 @@ function renderDashboard(
   buildSbgQuestionCards(teacherRecords, latestByStudentQuestion);
 
   const studentNames = [...new Set(teacherRecords.map(r => r.studentName))];
-  const attemptIds = [...new Set(teacherRecords.map(r => r.timestamp))];
+  const attemptIds = [...new Set(teacherRecords.map(r => getAttemptKey(r.timestamp)))];
   const correctCount = teacherRecords.filter(r => r.correct).length;
   const percentCorrect = teacherRecords.length
     ? Math.round((correctCount / teacherRecords.length) * 100)
@@ -520,7 +526,7 @@ function buildLatestByStudentQuestion(teacherRecords) {
     const key = `${r.studentName}|${r.questionId}`;
     if (!latest[key]) {
       latest[key] = r;
-    } else if (r.timestamp > latest[key].timestamp) {
+    } else if (getAttemptKey(r.timestamp) > latest[key].timestamp) {
       latest[key] = r;
     }
   });
@@ -544,7 +550,7 @@ function renderStudentSummaryAndAttempts(
 
   const byAttempt = {};
   records.forEach(r => {
-    const attemptId = r.timestamp;
+const attemptId = getAttemptKey(getAttemptKey(r.timestamp));
     if (!byAttempt[attemptId]) byAttempt[attemptId] = [];
     byAttempt[attemptId].push(r);
   });
@@ -569,10 +575,9 @@ function renderStudentSummaryAndAttempts(
   `;
 
   attemptSelect.innerHTML = '<option value="">Select an attempt</option>';
-  attemptIds.forEach(id => {
-    const date = new Date(id);
-    const label = date.toLocaleString();
-    const opt = document.createElement("option");
+attemptIds.forEach(id => {
+  const date = new Date(Number(id));
+  const label = date.toLocaleString();    const opt = document.createElement("option");
     opt.value = id;
     opt.textContent = label;
     attemptSelect.appendChild(opt);
@@ -586,7 +591,7 @@ function renderStudentAttemptItems(studentName, attemptId) {
     r =>
       r.teacher === currentTeacher &&
       r.studentName === studentName &&
-      r.timestamp === attemptId
+getAttemptKey(getAttemptKey(r.timestamp)) === Number(attemptId)
   );
 
   const strip = document.getElementById("student-item-strip");
@@ -653,7 +658,7 @@ function sbgStripClass(level) {
 function computeStudentCurrentSbg(recordsForStudent) {
   const byAttempt = {};
   recordsForStudent.forEach(r => {
-    const attemptId = r.timestamp;
+    const attemptId = getAttemptKey(getAttemptKey(r.timestamp));
     if (!byAttempt[attemptId]) byAttempt[attemptId] = [];
     byAttempt[attemptId].push(r);
   });
