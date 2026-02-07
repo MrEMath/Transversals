@@ -61,7 +61,42 @@ document.addEventListener("DOMContentLoaded", () => {
       studentItemBody
     );
   });
-const prevItemBtn = document.getElementById("prev-item-btn");
+
+  // student dropdown change
+  studentSelect.addEventListener("change", () => {
+    const name = studentSelect.value;
+    studentSummaryEl.innerHTML = "";
+    studentItemBody.innerHTML = "";
+    attemptSelect.innerHTML = '<option value="">Select an attempt</option>';
+
+    if (!name) {
+      currentStudentItems = [];
+      updateItemFlipcard();
+      return;
+    }
+
+    renderStudentSummaryAndAttempts(
+      name,
+      studentSummaryEl,
+      attemptSelect
+    );
+    computeStudentItemAccuracy(name);
+  });
+
+  // attempt dropdown change
+  attemptSelect.addEventListener("change", () => {
+    const attemptId = attemptSelect.value;
+    const studentName = attemptSelect._studentName;
+    if (!attemptId || !studentName) {
+      studentItemBody.innerHTML = "";
+      return;
+    }
+    renderStudentAttemptItems(studentName, attemptId, studentItemBody);
+    // overall per-item accuracy is already over all attempts; no need to recompute here
+  });
+
+  // flipcard nav buttons
+  const prevItemBtn = document.getElementById("prev-item-btn");
   const nextItemBtn = document.getElementById("next-item-btn");
 
   if (prevItemBtn && nextItemBtn) {
@@ -81,31 +116,6 @@ const prevItemBtn = document.getElementById("prev-item-btn");
     });
   }
 });
-  studentSelect.addEventListener("change", () => {
-    const name = studentSelect.value;
-    studentSummaryEl.innerHTML = "";
-    studentItemBody.innerHTML = "";
-    attemptSelect.innerHTML = '<option value="">Select an attempt</option>';
-
-    if (!name) return;
-
-    renderStudentSummaryAndAttempts(
-      name,
-      studentSummaryEl,
-      attemptSelect
-    );
-  });
-
-  attemptSelect.addEventListener("change", () => {
-    const attemptId = attemptSelect.value;
-    const studentName = attemptSelect._studentName;
-    if (!attemptId || !studentName) {
-      studentItemBody.innerHTML = "";
-      return;
-    }
-    renderStudentAttemptItems(studentName, attemptId, studentItemBody);
-    computeStudentItemAccuracy(name);
-  });
 
 // ---------- DASHBOARD FUNCTIONS ----------
 

@@ -451,3 +451,6 @@ button:disabled {
   color: #c51d34; /* default red */
 }
 
+#item-analysis-table-section {
+  display: none;
+}
