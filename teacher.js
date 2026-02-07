@@ -1,3 +1,5 @@
+// ---------------- TEACHER CONFIG ----------------
+
 const TEACHER_PASSWORDS = {
   Englade: "englade2026",
   Russell: "russell2026",
@@ -9,10 +11,14 @@ const TEACHER_PASSWORDS = {
 let currentTeacher = null;
 let allRecords = [];
 
+// ---------------- DATA LOAD ----------------
+
 function loadData() {
   const raw = localStorage.getItem("reflectionPracticeResults");
   allRecords = raw ? JSON.parse(raw) : [];
 }
+
+// ---------------- DOM READY ----------------
 
 document.addEventListener("DOMContentLoaded", () => {
   const teacherNameEl = document.getElementById("teacher-name");
@@ -31,6 +37,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   loadData();
 
+  // Login
   teacherLoginBtn.addEventListener("click", () => {
     const name = teacherNameEl.value;
     const pwd = teacherPasswordEl.value.trim();
@@ -62,7 +69,7 @@ document.addEventListener("DOMContentLoaded", () => {
     );
   });
 
-  // student dropdown change
+  // Student dropdown change
   studentSelect.addEventListener("change", () => {
     const name = studentSelect.value;
     studentSummaryEl.innerHTML = "";
@@ -83,7 +90,7 @@ document.addEventListener("DOMContentLoaded", () => {
     computeStudentItemAccuracy(name);
   });
 
-  // attempt dropdown change
+  // Attempt dropdown change
   attemptSelect.addEventListener("change", () => {
     const attemptId = attemptSelect.value;
     const studentName = attemptSelect._studentName;
@@ -95,7 +102,7 @@ document.addEventListener("DOMContentLoaded", () => {
     // overall per-item accuracy is already over all attempts; no need to recompute here
   });
 
-  // flipcard nav buttons
+  // Flipcard nav buttons
   const prevItemBtn = document.getElementById("prev-item-btn");
   const nextItemBtn = document.getElementById("next-item-btn");
 
@@ -117,7 +124,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 });
 
-// ---------- DASHBOARD FUNCTIONS ----------
+// ---------------- DASHBOARD ----------------
 
 function renderDashboard(
   overallStatsEl,
@@ -153,7 +160,7 @@ function renderDashboard(
     sbgCounts[key]++;
   });
 
-  // Build bands for doughnut
+  // bands for doughnut
   const bands = {
     '0.0–0.5': 0,
     '1.0–1.5': 0,
@@ -171,62 +178,27 @@ function renderDashboard(
 
   renderSbgDoughnut(bands);
 
-  // SBG summary bar
+  // SBG summary (hidden container but keep code)
   const sbgSummaryEl = document.getElementById("sbg-summary");
-  let sbgHtml = "";
-  Object.keys(sbgCounts)
-    .sort((a, b) => Number(a) - Number(b))
-    .forEach(key => {
-      const count = sbgCounts[key];
-      const totalStudents = Object.keys(byStudent).length || 1;
-      const pct = Math.round((count / totalStudents) * 100);
-      sbgHtml += `
-        <div class="sbg-row">
-          <span class="sbg-label">Level ${key}</span>
-          <div class="sbg-bar">
-            <div class="sbg-bar-fill" style="width:${pct}%"></div>
-          </div>
-          <span class="sbg-percent">${pct}%</span>
-        </div>
-      `;
-    });
-  sbgSummaryEl.innerHTML = sbgHtml;
-
-  // students by SBG
-  const sbgStudents = {};
-  Object.keys(byStudent).forEach(name => {
-    const level = computeStudentCurrentSbg(byStudent[name]);
-    const key = level.toString();
-    if (!sbgStudents[key]) sbgStudents[key] = [];
-    sbgStudents[key].push({ name, level });
-  });
-
-  const bandsEl = document.getElementById("sbg-student-bands");
-  if (bandsEl) {
-    let bandsHtml = "";
-    Object.keys(sbgStudents)
+  if (sbgSummaryEl) {
+    let sbgHtml = "";
+    Object.keys(sbgCounts)
       .sort((a, b) => Number(a) - Number(b))
       .forEach(key => {
-        const students = sbgStudents[key].sort((a, b) =>
-          a.name.localeCompare(b.name)
-        );
-        bandsHtml += `
-          <div class="sbg-band">
-            <div class="sbg-band-header">
-              <span>Level ${key}</span>
-              <span>${students.length} students</span>
+        const count = sbgCounts[key];
+        const totalStudents = Object.keys(byStudent).length || 1;
+        const pct = Math.round((count / totalStudents) * 100);
+        sbgHtml += `
+          <div class="sbg-row">
+            <span class="sbg-label">Level ${key}</span>
+            <div class="sbg-bar">
+              <div class="sbg-bar-fill" style="width:${pct}%"></div>
             </div>
-            <div class="sbg-chip-row">
-              ${students
-                .map(
-                  s => `<span class="sbg-chip">${s.name} – ${s.level}</span>`
-                )
-                .join("")}
-            </div>
+            <span class="sbg-percent">${pct}%</span>
           </div>
         `;
       });
-    bandsEl.innerHTML = bandsHtml;
+    sbgSummaryEl.innerHTML = sbgHtml;
   }
 
   overallStatsEl.innerHTML = `
@@ -235,14 +207,17 @@ function renderDashboard(
     <p>Average accuracy (all items): <strong>${percentCorrect}%</strong></p>
   `;
 
-if (itemAnalysisBody) {
-  renderItemAnalysis(teacherRecords, itemAnalysisBody);
-}
-renderItemBarChart(teacherRecords);
+  if (itemAnalysisBody) {
+    renderItemAnalysis(teacherRecords, itemAnalysisBody);
+  }
+  renderItemBarChart(teacherRecords);
+
   populateStudentDropdown(studentNames, studentSelect);
   studentSummaryEl.innerHTML = "";
   studentItemBody.innerHTML = "";
 }
+
+// ---------------- SBG DOUGHNUT ----------------
 
 let sbgDoughnutChart = null;
 
@@ -258,8 +233,6 @@ function renderSbgDoughnut(bands) {
     bands['3.0']
   ];
   const colors = ['#F04923', '#FFBF00', '#00A86B', '#0067A5'];
-
-  const total = data.reduce((sum, v) => sum + v, 0) || 1;
 
   if (sbgDoughnutChart) {
     sbgDoughnutChart.data.datasets[0].data = data;
@@ -282,9 +255,9 @@ function renderSbgDoughnut(bands) {
       plugins: {
         legend: {
           position: 'bottom',
-          align: 'center',              // center legend block
+          align: 'center',
           labels: {
-            textAlign: 'left',          // left-align each row
+            textAlign: 'left',
             color: '#3d2c2c',
             generateLabels(chart) {
               const ds = chart.data.datasets[0];
@@ -322,22 +295,19 @@ function renderSbgDoughnut(bands) {
   });
 }
 
+// ---------------- CLASS ITEM BAR CHART ----------------
+
 let itemBarChart = null;
 
 function renderItemBarChart(records) {
-  console.log("renderItemBarChart called, records:", records?.length);
   const ctx = document.getElementById("item-bar-chart");
-  if (!ctx) {
-    console.log("item-bar-chart canvas not found");
-    return;
-  }
+  if (!ctx) return;
 
   if (!records || !records.length) {
     ctx.parentElement.innerHTML = "<p>No item data yet.</p>";
     return;
-    }
+  }
 
-  // group by questionId
   const byQuestion = {};
   records.forEach(r => {
     const qid = r.questionId;
@@ -362,10 +332,10 @@ function renderItemBarChart(records) {
     });
 
   const bgColors = sbgLabels.map(level => {
-    if (level <= 0.5) return '#F04923';   // 0.0–0.5
-    if (level <= 1.5) return '#FFBF00';   // 1.0–1.5
-    if (level <= 2.5) return '#00A86B';   // 2.0–2.5
-    return '#0067A5';                     // 3.0+
+    if (level <= 0.5) return '#F04923';
+    if (level <= 1.5) return '#FFBF00';
+    if (level <= 2.5) return '#00A86B';
+    return '#0067A5';
   });
 
   if (itemBarChart) {
@@ -409,8 +379,12 @@ function renderItemBarChart(records) {
   });
 }
 
+// ---------------- SBG QUESTION CARDS (SAFE, NO-OP IF MISSING) ----------------
+
 function buildSbgQuestionCards(teacherRecords, latestByStudentQuestion) {
   const container = document.getElementById("sbg-question-cards");
+  if (!container) return; // no card in HTML now
+
   container.innerHTML = "";
 
   const sbgGroups = {};
@@ -483,6 +457,8 @@ function buildSbgQuestionCards(teacherRecords, latestByStudentQuestion) {
     });
 }
 
+// ---------------- ITEM ANALYSIS TABLE ----------------
+
 function renderItemAnalysis(records, itemAnalysisBody) {
   itemAnalysisBody.innerHTML = "";
 
@@ -524,7 +500,6 @@ function populateStudentDropdown(studentNames, studentSelect) {
 
 function buildLatestByStudentQuestion(teacherRecords) {
   const latest = {};
-
   teacherRecords.forEach(r => {
     const key = `${r.studentName}|${r.questionId}`;
     if (!latest[key]) {
@@ -536,11 +511,11 @@ function buildLatestByStudentQuestion(teacherRecords) {
   return latest;
 }
 
-// ---------- STUDENT DETAIL ----------
+// ---------------- STUDENT DETAIL ----------------
 
 function renderStudentSummaryAndAttempts(studentName, studentSummaryEl, attemptSelect) {
-  const records = allRecords.filter(r =>
-    r.teacher === currentTeacher && r.studentName === studentName
+  const records = allRecords.filter(
+    r => r.teacher === currentTeacher && r.studentName === studentName
   );
   if (!records.length) {
     studentSummaryEl.textContent = "No data for this student.";
@@ -627,6 +602,9 @@ function computeStudentCurrentSbg(recordsForStudent) {
 
   return Number(avgSbg.toFixed(1));
 }
+
+// ---------------- FLIPCARD / PER-ITEM ACCURACY ----------------
+
 // Map questionId -> screenshot URL
 const ITEM_SCREENSHOTS = {
   1: "items-images/1.png",
@@ -658,41 +636,44 @@ const ITEM_SCREENSHOTS = {
   27: "items-images/27.png",
   28: "items-images/28.png",
   29: "items-images/29.png",
-  30: "items-images/30.png",
+  30: "items-images/30.png"
 };
 
-let currentStudentItems = []; // array of {questionId, sbg, percent}
+let currentStudentItems = []; // {questionId, sbg, percent}
 let currentItemIndex = 0;
 
 function updateItemFlipcard() {
+  const imgEl = document.getElementById("item-screenshot");
+  const percentEl = document.getElementById("accuracy-percent");
+  const circleEl = document.getElementById("accuracy-circle");
+  if (!imgEl || !percentEl || !circleEl) return;
+
   if (!currentStudentItems.length) {
-    document.getElementById("item-screenshot").src = "";
-    document.getElementById("accuracy-percent").textContent = "--%";
-    document.getElementById("accuracy-circle").style.borderColor = "#ccc";
-    document.getElementById("accuracy-percent").style.color = "#ccc";
+    imgEl.src = "";
+    imgEl.alt = "No item selected";
+    percentEl.textContent = "--%";
+    circleEl.style.borderColor = "#ccc";
+    percentEl.style.color = "#ccc";
     return;
   }
 
   const { questionId, percent, sbg } = currentStudentItems[currentItemIndex];
-  const imgEl = document.getElementById("item-screenshot");
   const src = ITEM_SCREENSHOTS[questionId] || "";
   imgEl.src = src;
   imgEl.alt = `Question ${questionId} (SBG ${sbg})`;
 
-  document.getElementById("accuracy-percent").textContent = `${percent}%`;
+  percentEl.textContent = `${percent}%`;
 
-  // color thresholds
   let color = "#c51d34"; // red 0–59
   if (percent >= 90) color = "#0067A5";      // blue
   else if (percent >= 80) color = "#00A86B"; // green
   else if (percent >= 60) color = "#FFBF00"; // yellow
 
-  document.getElementById("accuracy-circle").style.borderColor = color;
-  document.getElementById("accuracy-percent").style.color = color;
+  circleEl.style.borderColor = color;
+  percentEl.style.color = color;
 }
 
 function computeStudentItemAccuracy(studentName) {
-  // All records for this student (all attempts)
   const records = allRecords.filter(
     r => r.teacher === currentTeacher && r.studentName === studentName
   );
