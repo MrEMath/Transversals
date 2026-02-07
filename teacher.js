@@ -63,15 +63,22 @@ document.addEventListener("DOMContentLoaded", () => {
       overallStatsEl,
       itemAnalysisBody,
       studentSelect,
-      studentSummaryEl,
+      studentSummaryEl
     );
+
+    // show placeholder in flipcard on first load
+    currentStudentItems = [];
+    currentItemIndex = 0;
+    updateItemFlipcard();
   });
 
   // Student dropdown change
   studentSelect.addEventListener("change", () => {
     const name = studentSelect.value;
     studentSummaryEl.innerHTML = "";
-    attemptSelect.innerHTML = '<option value="">Select an attempt</option>';
+    attemptSelect.innerHTML = "";
+    const strip = document.getElementById("student-item-strip");
+    if (strip) strip.innerHTML = "";
 
     if (!name) {
       currentStudentItems = [];
@@ -91,10 +98,17 @@ document.addEventListener("DOMContentLoaded", () => {
   attemptSelect.addEventListener("change", () => {
     const attemptId = attemptSelect.value;
     const studentName = attemptSelect._studentName;
+    const strip = document.getElementById("student-item-strip");
+
+    if (!strip) return;
+
     if (!attemptId || !studentName) {
+      strip.innerHTML = "";
       return;
     }
-    // overall per-item accuracy is already over all attempts; no need to recompute here
+
+    renderStudentAttemptItems(studentName, attemptId);
+    // per-item overall accuracy already over all attempts
   });
 
   // Flipcard nav buttons
@@ -125,7 +139,7 @@ function renderDashboard(
   overallStatsEl,
   itemAnalysisBody,
   studentSelect,
-  studentSummaryEl,
+  studentSummaryEl
 ) {
   const teacherRecords = allRecords.filter(r => r.teacher === currentTeacher);
 
@@ -156,23 +170,23 @@ function renderDashboard(
 
   // bands for doughnut
   const bands = {
-    '0.0–0.5': 0,
-    '1.0–1.5': 0,
-    '2.0–2.5': 0,
-    '3.0': 0
+    "0.0–0.5": 0,
+    "1.0–1.5": 0,
+    "2.0–2.5": 0,
+    "3.0": 0
   };
 
   Object.entries(sbgCounts).forEach(([levelStr, count]) => {
     const level = parseFloat(levelStr);
-    if (level <= 0.5) bands['0.0–0.5'] += count;
-    else if (level <= 1.5) bands['1.0–1.5'] += count;
-    else if (level <= 2.5) bands['2.0–2.5'] += count;
-    else bands['3.0'] += count;
+    if (level <= 0.5) bands["0.0–0.5"] += count;
+    else if (level <= 1.5) bands["1.0–1.5"] += count;
+    else if (level <= 2.5) bands["2.0–2.5"] += count;
+    else bands["3.0"] += count;
   });
 
   renderSbgDoughnut(bands);
 
-  // SBG summary (hidden container but keep code)
+  // optional SBG summary (hidden)
   const sbgSummaryEl = document.getElementById("sbg-summary");
   if (sbgSummaryEl) {
     let sbgHtml = "";
@@ -208,6 +222,8 @@ function renderDashboard(
 
   populateStudentDropdown(studentNames, studentSelect);
   studentSummaryEl.innerHTML = "";
+  const strip = document.getElementById("student-item-strip");
+  if (strip) strip.innerHTML = "";
 }
 
 // ---------------- SBG DOUGHNUT ----------------
@@ -218,14 +234,14 @@ function renderSbgDoughnut(bands) {
   const ctx = document.getElementById("sbg-doughnut");
   if (!ctx) return;
 
-  const labels = ['SBG 0.0–0.5', 'SBG 1.0–1.5', 'SBG 2.0–2.5', 'SBG 3.0'];
+  const labels = ["SBG 0.0–0.5", "SBG 1.0–1.5", "SBG 2.0–2.5", "SBG 3.0"];
   const data = [
-    bands['0.0–0.5'],
-    bands['1.0–1.5'],
-    bands['2.0–2.5'],
-    bands['3.0']
+    bands["0.0–0.5"],
+    bands["1.0–1.5"],
+    bands["2.0–2.5"],
+    bands["3.0"]
   ];
-  const colors = ['#F04923', '#FFBF00', '#00A86B', '#0067A5'];
+  const colors = ["#F04923", "#FFBF00", "#00A86B", "#0067A5"];
 
   if (sbgDoughnutChart) {
     sbgDoughnutChart.data.datasets[0].data = data;
@@ -234,35 +250,38 @@ function renderSbgDoughnut(bands) {
   }
 
   sbgDoughnutChart = new Chart(ctx, {
-    type: 'doughnut',
+    type: "doughnut",
     data: {
       labels,
-      datasets: [{
-        data,
-        backgroundColor: colors,
-        borderColor: '#ffffff',
-        borderWidth: 2
-      }]
+      datasets: [
+        {
+          data,
+          backgroundColor: colors,
+          borderColor: "#ffffff",
+          borderWidth: 2
+        }
+      ]
     },
     options: {
       plugins: {
         legend: {
-          position: 'bottom',
-          align: 'center',
+          position: "bottom",
+          align: "center",
           labels: {
-            textAlign: 'left',
-            color: '#3d2c2c',
+            textAlign: "left",
+            color: "#3d2c2c",
             generateLabels(chart) {
               const ds = chart.data.datasets[0];
               const values = ds.data;
-              const totalLocal = values.reduce((s, v) => s + v, 0) || 1;
+              const totalLocal =
+                values.reduce((s, v) => s + v, 0) || 1;
               return chart.data.labels.map((label, i) => {
                 const value = values[i] || 0;
-                const pct = ((value / totalLocal) * 100).toFixed(0) + '%';
+                const pct = ((value / totalLocal) * 100).toFixed(0) + "%";
                 return {
                   text: `${label} – ${pct}`,
                   fillStyle: ds.backgroundColor[i],
-                  strokeStyle: '#ffffff',
+                  strokeStyle: "#ffffff",
                   lineWidth: 2,
                   hidden: isNaN(value) || value === 0,
                   index: i
@@ -272,17 +291,17 @@ function renderSbgDoughnut(bands) {
           }
         },
         datalabels: {
-          color: '#ffffff',
-          font: { weight: 'bold' },
+          color: "#ffffff",
+          font: { weight: "bold" },
           formatter(value, context) {
             const dataset = context.dataset.data;
             const sum = dataset.reduce((a, b) => a + b, 0) || 1;
             const pct = (value / sum) * 100;
-            return value ? `${pct.toFixed(0)}%` : '';
+            return value ? `${pct.toFixed(0)}%` : "";
           }
         }
       },
-      cutout: '60%'
+      cutout: "60%"
     },
     plugins: [ChartDataLabels]
   });
@@ -325,10 +344,10 @@ function renderItemBarChart(records) {
     });
 
   const bgColors = sbgLabels.map(level => {
-    if (level <= 0.5) return '#F04923';
-    if (level <= 1.5) return '#FFBF00';
-    if (level <= 2.5) return '#00A86B';
-    return '#0067A5';
+    if (level <= 0.5) return "#F04923";
+    if (level <= 1.5) return "#FFBF00";
+    if (level <= 2.5) return "#00A86B";
+    return "#0067A5";
   });
 
   if (itemBarChart) {
@@ -340,14 +359,16 @@ function renderItemBarChart(records) {
   }
 
   itemBarChart = new Chart(ctx, {
-    type: 'bar',
+    type: "bar",
     data: {
       labels,
-      datasets: [{
-        label: '% Correct',
-        data: percents,
-        backgroundColor: bgColors
-      }]
+      datasets: [
+        {
+          label: "% Correct",
+          data: percents,
+          backgroundColor: bgColors
+        }
+      ]
     },
     options: {
       plugins: {
@@ -365,7 +386,9 @@ function renderItemBarChart(records) {
         y: {
           beginAtZero: true,
           max: 100,
-          ticks: { callback: v => v + '%' }
+          ticks: {
+            callback: v => v + "%"
+          }
         }
       }
     }
@@ -376,7 +399,7 @@ function renderItemBarChart(records) {
 
 function buildSbgQuestionCards(teacherRecords, latestByStudentQuestion) {
   const container = document.getElementById("sbg-question-cards");
-  if (!container) return; // no card in HTML now
+  if (!container) return;
 
   container.innerHTML = "";
 
@@ -506,7 +529,11 @@ function buildLatestByStudentQuestion(teacherRecords) {
 
 // ---------------- STUDENT DETAIL ----------------
 
-function renderStudentSummaryAndAttempts(studentName, studentSummaryEl, attemptSelect) {
+function renderStudentSummaryAndAttempts(
+  studentName,
+  studentSummaryEl,
+  attemptSelect
+) {
   const records = allRecords.filter(
     r => r.teacher === currentTeacher && r.studentName === studentName
   );
@@ -528,13 +555,12 @@ function renderStudentSummaryAndAttempts(studentName, studentSummaryEl, attemptS
   const latestId = attemptIds[attemptIds.length - 1];
   const latest = byAttempt[latestId];
   const correctItems = latest.filter(r => r.correct);
-  const currentSbgLevel =
-    correctItems.length
-      ? (
-          correctItems.reduce((sum, r) => sum + (r.sbg || 0), 0) /
-          correctItems.length
-        ).toFixed(2)
-      : "0.0";
+  const currentSbgLevel = correctItems.length
+    ? (
+        correctItems.reduce((sum, r) => sum + (r.sbg || 0), 0) /
+        correctItems.length
+      ).toFixed(2)
+    : "0.0";
 
   studentSummaryEl.innerHTML = `
     <p>Student: <strong>${studentName}</strong></p>
@@ -556,10 +582,11 @@ function renderStudentSummaryAndAttempts(studentName, studentSummaryEl, attemptS
 }
 
 function renderStudentAttemptItems(studentName, attemptId) {
-  const records = allRecords.filter(r =>
-    r.teacher === currentTeacher &&
-    r.studentName === studentName &&
-    r.timestamp === attemptId
+  const records = allRecords.filter(
+    r =>
+      r.teacher === currentTeacher &&
+      r.studentName === studentName &&
+      r.timestamp === attemptId
   );
 
   const strip = document.getElementById("student-item-strip");
@@ -586,7 +613,8 @@ function renderStudentAttemptItems(studentName, attemptId) {
       const group = bySbg[levelKey];
 
       const card = document.createElement("div");
-      card.className = "sbg-strip-card " + sbgStripClass(parseFloat(levelKey));
+      card.className =
+        "sbg-strip-card " + sbgStripClass(parseFloat(levelKey));
 
       const header = document.createElement("div");
       header.className = "sbg-strip-header";
@@ -596,10 +624,10 @@ function renderStudentAttemptItems(studentName, attemptId) {
       const row = document.createElement("div");
       row.className = "sbg-strip-items";
 
-      group.forEach((r, idx) => {
+      group.forEach(r => {
         const idxSpan = document.createElement("span");
         idxSpan.className = "index";
-        idxSpan.textContent = r.questionId; // or idx+1 if you want 1–5
+        idxSpan.textContent = r.questionId;
         row.appendChild(idxSpan);
 
         const box = document.createElement("div");
@@ -622,15 +650,6 @@ function sbgStripClass(level) {
   return "sbg-strip-3-0";
 }
 
-// helper to map level -> color class
-function sbgStripClass(level) {
-  if (level <= 0.5) return "sbg-strip-0-5";
-  if (level <= 1.0) return "sbg-strip-1-0";
-  if (level <= 1.5) return "sbg-strip-1-5";
-  if (level <= 2.0) return "sbg-strip-2-0";
-  if (level <= 2.5) return "sbg-strip-2-5";
-  return "sbg-strip-3-0";
-}
 function computeStudentCurrentSbg(recordsForStudent) {
   const byAttempt = {};
   recordsForStudent.forEach(r => {
@@ -653,7 +672,6 @@ function computeStudentCurrentSbg(recordsForStudent) {
 
 // ---------------- FLIPCARD / PER-ITEM ACCURACY ----------------
 
-// Map questionId -> screenshot URL
 const ITEM_SCREENSHOTS = {
   1: "items-images/1.png",
   2: "items-images/2.png",
@@ -684,12 +702,12 @@ const ITEM_SCREENSHOTS = {
   27: "items-images/27.png",
   28: "items-images/28.png",
   29: "items-images/29.png",
-  30: "items-images/30.png"
+  30: "items-images/30.png",
+  0: "items-images/0.png"
 };
 
-let currentStudentItems = []; // {questionId, sbg, percent}
+let currentStudentItems = [];
 let currentItemIndex = 0;
-updateItemFlipcard(); // initialize with placeholder
 
 function updateItemFlipcard() {
   const imgEl = document.getElementById("item-screenshot");
@@ -699,13 +717,14 @@ function updateItemFlipcard() {
   if (!imgEl || !percentEl || !circleEl) return;
 
   if (!currentStudentItems.length) {
-    const placeholderSrc = "items-images/0.png";
+    const placeholderSrc = ITEM_SCREENSHOTS[0];
 
     imgEl.src = placeholderSrc;
     imgEl.alt = "Select a student to view item performance.";
     if (zoomPopupImg) {
       zoomPopupImg.src = placeholderSrc;
-      zoomPopupImg.alt = "Select a student to view item performance.";
+      zoomPopupImg.alt =
+        "Select a student to view item performance.";
     }
     percentEl.textContent = "--%";
     circleEl.style.borderColor = "#ccc";
