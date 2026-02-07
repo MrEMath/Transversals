@@ -651,11 +651,12 @@ function updateItemFlipcard() {
 
   if (!currentStudentItems.length) {
     const placeholderSrc = "items-images/0.png";
-    imgEl.src = "";
-    imgEl.alt = "No item selected";
+
+    imgEl.src = placeholderSrc;
+    imgEl.alt = "Select a student to view item performance.";
     if (zoomPopupImg) {
-      zoomPopupImg.src = "";
-      zoomPopupImg.alt = "";
+      zoomPopupImg.src = placeholderSrc;
+      zoomPopupImg.alt = "Select a student to view item performance.";
     }
     percentEl.textContent = "--%";
     circleEl.style.borderColor = "#ccc";
@@ -674,7 +675,7 @@ function updateItemFlipcard() {
 
   percentEl.textContent = `${percent}%`;
 
-  let color = "#c51d34"; // red 0–59
+  let color = "#c51d34";
   if (percent >= 90) color = "#0067A5";
   else if (percent >= 80) color = "#00A86B";
   else if (percent >= 60) color = "#FFBF00";
