@@ -32,7 +32,6 @@ document.addEventListener("DOMContentLoaded", () => {
   const itemAnalysisBody = document.querySelector("#item-analysis-table tbody");
   const studentSelect = document.getElementById("student-select");
   const studentSummaryEl = document.getElementById("student-summary");
-  const studentItemBody = document.querySelector("#student-item-table tbody");
   const attemptSelect = document.getElementById("attempt-select");
 
   loadData();
@@ -569,20 +568,74 @@ function renderStudentAttemptItems(studentName, attemptId, studentItemBody) {
     r.timestamp === attemptId
   );
 
-  studentItemBody.innerHTML = "";
+  // new container instead of table body
+  const strip = document.getElementById("student-item-strip");
+  if (!strip) return;
+  strip.innerHTML = "";
+
+  if (!records.length) {
+    strip.textContent = "No items for this attempt.";
+    return;
+  }
+
+  // group by SBG level and preserve item order within level
+  const bySbg = {};
   records
-    .sort((a, b) => a.questionId - b.questionId)
+    .sort((a, b) => a.sbg - b.sbg || a.questionId - b.questionId)
     .forEach(r => {
-      const tr = document.createElement("tr");
-      tr.innerHTML = `
-        <td>${r.questionId}</td>
-        <td>${r.sbg}</td>
-        <td>${r.correct ? "✔" : "✘"}</td>
-      `;
-      studentItemBody.appendChild(tr);
+      const key = r.sbg.toFixed(1);
+      if (!bySbg[key]) bySbg[key] = [];
+      bySbg[key].push(r);
+    });
+
+  Object.keys(bySbg)
+    .sort((a, b) => parseFloat(a) - parseFloat(b))
+    .forEach(levelKey => {
+      const group = bySbg[levelKey];
+
+      const card = document.createElement("div");
+      card.className = "sbg-strip-card " + sbgStripClass(parseFloat(levelKey));
+
+      // header: e.g., "SBG 0.5"
+      const header = document.createElement("div");
+      header.className = "sbg-strip-header";
+      header.textContent = `SBG ${levelKey}`;
+      card.appendChild(header);
+
+      // row of items 1–5 with ✔/✘ in boxes
+      const row = document.createElement("div");
+      row.className = "sbg-strip-items";
+
+      // indices (1–5) always shown
+      for (let i = 1; i <= 5; i++) {
+        const idxSpan = document.createElement("span");
+        idxSpan.className = "index";
+        idxSpan.textContent = i;
+        row.appendChild(idxSpan);
+      }
+
+      // boxes driven by the actual items at that level
+      group.forEach(r => {
+        const box = document.createElement("div");
+        box.className = "box";
+        box.textContent = r.correct ? "✔" : "✘";
+        row.appendChild(box);
+      });
+
+      card.appendChild(row);
+      strip.appendChild(card);
     });
 }
 
+// helper to map level -> color class
+function sbgStripClass(level) {
+  if (level <= 0.5) return "sbg-strip-0-5";
+  if (level <= 1.0) return "sbg-strip-1-0";
+  if (level <= 1.5) return "sbg-strip-1-5";
+  if (level <= 2.0) return "sbg-strip-2-0";
+  if (level <= 2.5) return "sbg-strip-2-5";
+  return "sbg-strip-3-0";
+}
 function computeStudentCurrentSbg(recordsForStudent) {
   const byAttempt = {};
   recordsForStudent.forEach(r => {

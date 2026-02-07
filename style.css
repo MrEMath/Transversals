@@ -397,6 +397,58 @@ button:disabled {
   gap: 0.5rem;
   margin-bottom: 0.75rem;
 }
+/* horizontal SBG strip inside Individual Student card */
+#student-item-strip {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+  overflow-x: auto;
+}
+
+.sbg-strip-card {
+  flex: 0 0 140px;
+  border-radius: 18px;
+  padding: 6px 10px 10px;
+  border: 3px solid #c51d34;   /* default red; overridden per level */
+  background: #ffffff;
+  font-size: 0.8rem;
+}
+
+.sbg-strip-header {
+  text-align: center;
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+
+.sbg-strip-items {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.sbg-strip-items .index {
+  font-size: 0.85rem;
+  margin-right: 2px;
+}
+
+.sbg-strip-items .box {
+  width: 18px;
+  height: 18px;
+  border-radius: 3px;
+  border: 2px solid currentColor;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.7rem;
+}
+
+/* colors per level (match your SBG palette) */
+.sbg-strip-0-5 { border-color: #c51d34; color: #c51d34; }
+.sbg-strip-1-0,
+.sbg-strip-1-5 { border-color: #e9b000; color: #e9b000; }
+.sbg-strip-2-0,
+.sbg-strip-2-5 { border-color: #007f3b; color: #007f3b; }
+.sbg-strip-3-0 { border-color: #0067A5; color: #0067A5; }
 
 /* flipcard layout */
 #item-flipcard {
