@@ -644,6 +644,7 @@ let currentItemIndex = 0;
 
 function updateItemFlipcard() {
   const imgEl = document.getElementById("item-screenshot");
+  const zoomPopupImg = document.querySelector(".flipcard-zoom-popup img");
   const percentEl = document.getElementById("accuracy-percent");
   const circleEl = document.getElementById("accuracy-circle");
   if (!imgEl || !percentEl || !circleEl) return;
@@ -651,6 +652,10 @@ function updateItemFlipcard() {
   if (!currentStudentItems.length) {
     imgEl.src = "";
     imgEl.alt = "No item selected";
+    if (zoomPopupImg) {
+      zoomPopupImg.src = "";
+      zoomPopupImg.alt = "";
+    }
     percentEl.textContent = "--%";
     circleEl.style.borderColor = "#ccc";
     percentEl.style.color = "#ccc";
@@ -661,13 +666,17 @@ function updateItemFlipcard() {
   const src = ITEM_SCREENSHOTS[questionId] || "";
   imgEl.src = src;
   imgEl.alt = `Question ${questionId} (SBG ${sbg})`;
+  if (zoomPopupImg) {
+    zoomPopupImg.src = src;
+    zoomPopupImg.alt = `Zoomed question ${questionId} (SBG ${sbg})`;
+  }
 
   percentEl.textContent = `${percent}%`;
 
   let color = "#c51d34"; // red 0–59
-  if (percent >= 90) color = "#0067A5";      // blue
-  else if (percent >= 80) color = "#00A86B"; // green
-  else if (percent >= 60) color = "#FFBF00"; // yellow
+  if (percent >= 90) color = "#0067A5";
+  else if (percent >= 80) color = "#00A86B";
+  else if (percent >= 60) color = "#FFBF00";
 
   circleEl.style.borderColor = color;
   percentEl.style.color = color;
