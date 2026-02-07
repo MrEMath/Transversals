@@ -371,3 +371,83 @@ button:disabled {
   }
 }
 
+/* dashboard grid: two columns on larger screens */
+@media (min-width: 900px) {
+  #teacher-dashboard {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+  }
+
+  .overall-card,
+  .sbg-card,
+  .item-analysis-card {
+    grid-column: 1 / -1; /* full width */
+  }
+
+  .half-card {
+    grid-column: span 1;
+  }
+}
+
+/* student detail layout */
+.student-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+/* flipcard layout */
+#item-flipcard {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.flipcard-frame {
+  flex: 1;
+  max-width: 320px;
+  border: 1px solid #918e8e;
+  border-radius: 8px;
+  padding: 8px;
+  background-color: #ffffff;
+}
+
+#item-screenshot {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.nav-arrow {
+  border: none;
+  background: transparent;
+  font-size: 1.5rem;
+  cursor: pointer;
+}
+
+/* accuracy circle */
+#item-accuracy {
+  text-align: center;
+}
+
+#accuracy-circle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 140px;
+  height: 140px;
+  border-radius: 50%;
+  border: 8px solid #c51d34; /* default red */
+  margin-top: 0.5rem;
+}
+
+#accuracy-percent {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #c51d34; /* default red */
+}
+

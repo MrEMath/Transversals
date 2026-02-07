@@ -61,7 +61,26 @@ document.addEventListener("DOMContentLoaded", () => {
       studentItemBody
     );
   });
+const prevItemBtn = document.getElementById("prev-item-btn");
+  const nextItemBtn = document.getElementById("next-item-btn");
 
+  if (prevItemBtn && nextItemBtn) {
+    prevItemBtn.addEventListener("click", () => {
+      if (!currentStudentItems.length) return;
+      currentItemIndex =
+        (currentItemIndex - 1 + currentStudentItems.length) %
+        currentStudentItems.length;
+      updateItemFlipcard();
+    });
+
+    nextItemBtn.addEventListener("click", () => {
+      if (!currentStudentItems.length) return;
+      currentItemIndex =
+        (currentItemIndex + 1) % currentStudentItems.length;
+      updateItemFlipcard();
+    });
+  }
+});
   studentSelect.addEventListener("change", () => {
     const name = studentSelect.value;
     studentSummaryEl.innerHTML = "";
@@ -85,8 +104,8 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
     renderStudentAttemptItems(studentName, attemptId, studentItemBody);
+    computeStudentItemAccuracy(name);
   });
-});
 
 // ---------- DASHBOARD FUNCTIONS ----------
 
@@ -597,4 +616,94 @@ function computeStudentCurrentSbg(recordsForStudent) {
     correctItems.length;
 
   return Number(avgSbg.toFixed(1));
+}
+// Map questionId -> screenshot URL
+const ITEM_SCREENSHOTS = {
+  1: "items-images/1.png",
+  2: "items-images/2.png",
+  3: "items-images/3.png",
+  4: "items-images/4.png",
+  5: "items-images/5.png",
+  6: "items-images/6.png",
+  7: "items-images/7.png",
+  8: "items-images/8.png",
+  9: "items-images/9.png",
+  10: "items-images/10.png",
+  11: "items-images/11.png",
+  12: "items-images/12.png",
+  13: "items-images/13.png",
+  14: "items-images/14.png",
+  15: "items-images/15.png",
+  16: "items-images/16.png",
+  17: "items-images/17.png",
+  18: "items-images/18.png",
+  19: "items-images/19.png",
+  20: "items-images/20.png",
+  21: "items-images/21.png",
+  22: "items-images/22.png",
+  23: "items-images/23.png",
+  24: "items-images/24.png",
+  25: "items-images/25.png",
+  26: "items-images/26.png",
+  27: "items-images/27.png",
+  28: "items-images/28.png",
+  29: "items-images/29.png",
+  30: "items-images/30.png",
+};
+
+let currentStudentItems = []; // array of {questionId, sbg, percent}
+let currentItemIndex = 0;
+
+function updateItemFlipcard() {
+  if (!currentStudentItems.length) {
+    document.getElementById("item-screenshot").src = "";
+    document.getElementById("accuracy-percent").textContent = "--%";
+    document.getElementById("accuracy-circle").style.borderColor = "#ccc";
+    document.getElementById("accuracy-percent").style.color = "#ccc";
+    return;
+  }
+
+  const { questionId, percent, sbg } = currentStudentItems[currentItemIndex];
+  const imgEl = document.getElementById("item-screenshot");
+  const src = ITEM_SCREENSHOTS[questionId] || "";
+  imgEl.src = src;
+  imgEl.alt = `Question ${questionId} (SBG ${sbg})`;
+
+  document.getElementById("accuracy-percent").textContent = `${percent}%`;
+
+  // color thresholds
+  let color = "#c51d34"; // red 0–59
+  if (percent >= 90) color = "#0067A5";      // blue
+  else if (percent >= 80) color = "#00A86B"; // green
+  else if (percent >= 60) color = "#FFBF00"; // yellow
+
+  document.getElementById("accuracy-circle").style.borderColor = color;
+  document.getElementById("accuracy-percent").style.color = color;
+}
+
+function computeStudentItemAccuracy(studentName) {
+  // All records for this student (all attempts)
+  const records = allRecords.filter(
+    r => r.teacher === currentTeacher && r.studentName === studentName
+  );
+  const byQuestion = {};
+  records.forEach(r => {
+    const qid = r.questionId;
+    if (!byQuestion[qid]) byQuestion[qid] = [];
+    byQuestion[qid].push(r);
+  });
+
+  currentStudentItems = Object.keys(byQuestion)
+    .sort((a, b) => Number(a) - Number(b))
+    .map(qid => {
+      const group = byQuestion[qid];
+      const correct = group.filter(r => r.correct).length;
+      const total = group.length || 1;
+      const percent = Math.round((correct / total) * 100);
+      const sbg = group[0].sbg;
+      return { questionId: Number(qid), sbg, percent };
+    });
+
+  currentItemIndex = 0;
+  updateItemFlipcard();
 }
