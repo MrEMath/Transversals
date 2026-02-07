@@ -650,6 +650,7 @@ function updateItemFlipcard() {
   if (!imgEl || !percentEl || !circleEl) return;
 
   if (!currentStudentItems.length) {
+    const placeholderSrc = "items-images/0.png";
     imgEl.src = "";
     imgEl.alt = "No item selected";
     if (zoomPopupImg) {
