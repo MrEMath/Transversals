@@ -408,7 +408,7 @@ button:disabled {
 }
 
 .flipcard-frame {
-  position: relative;
+  position: relative;          /* anchor popup */
   flex: 1;
   max-width: 320px;
   border: 1px solid #918e8e;
@@ -416,7 +416,6 @@ button:disabled {
   padding: 8px;
   background-color: #ffffff;
 }
-
 #item-screenshot {
   display: block;
   width: 100%;
@@ -460,13 +459,15 @@ button:disabled {
   display: inline-block;
 }
 
-/* Hidden popup by default */
+/* popup centered over the frame, 150% size */
 .flipcard-zoom-popup {
   display: none;
   position: absolute;
   top: 50%;
   left: 50%;
-  transform: translate (-50%, -50%);          /* to the right of the card */
+  width: 150%;
+  height: 150%;
+  transform: translate(-50%, -50%);
   z-index: 1000;
   border: 2px solid #444;
   background: #fff;
@@ -475,11 +476,12 @@ button:disabled {
 }
 
 .flipcard-zoom-popup img {
-  max-width: 150%;    /* adjust size as needed */
-  max-height: 150%;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
 }
 
-/* Show popup on hover */
+/* show popup on hover */
 .flipcard-image-wrapper:hover .flipcard-zoom-popup {
   display: block;
 }
