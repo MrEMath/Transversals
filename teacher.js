@@ -1,5 +1,4 @@
 // ---------------- TEACHER CONFIG ----------------
-
 const TEACHER_PASSWORDS = {
   Englade: "englade2026",
   Russell: "russell2026",
@@ -7,25 +6,23 @@ const TEACHER_PASSWORDS = {
   Massengill: "massengill2026",
   Clark: "clark2026"
 };
-
 let currentTeacher = null;
 let allRecords = [];
 
 // ---------------- DATA LOAD ----------------
-
 function loadData() {
   const raw = localStorage.getItem("reflectionPracticeResults");
   allRecords = raw ? JSON.parse(raw) : [];
 }
+
+// collapse timestamps to the minute so attempts are not split
 function getAttemptKey(ts) {
   const d = new Date(ts);
-  // round down to nearest minute so small ms differences collapse
   d.setSeconds(0, 0);
-  return d.getTime();  // numeric key
+  return d.getTime();
 }
 
 // ---------------- DOM READY ----------------
-
 document.addEventListener("DOMContentLoaded", () => {
   const teacherNameEl = document.getElementById("teacher-name");
   const teacherPasswordEl = document.getElementById("teacher-password");
@@ -51,7 +48,6 @@ document.addEventListener("DOMContentLoaded", () => {
       teacherLoginError.textContent = "Select your name and enter password.";
       return;
     }
-
     if (TEACHER_PASSWORDS[name] !== pwd) {
       teacherLoginError.textContent = "Incorrect password.";
       return;
@@ -92,11 +88,7 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
-    renderStudentSummaryAndAttempts(
-      name,
-      studentSummaryEl,
-      attemptSelect
-    );
+    renderStudentSummaryAndAttempts(name, studentSummaryEl, attemptSelect);
     computeStudentItemAccuracy(name);
   });
 
@@ -105,7 +97,6 @@ document.addEventListener("DOMContentLoaded", () => {
     const attemptId = attemptSelect.value;
     const studentName = attemptSelect._studentName;
     const strip = document.getElementById("student-item-strip");
-
     if (!strip) return;
 
     if (!attemptId || !studentName) {
@@ -114,7 +105,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     renderStudentAttemptItems(studentName, attemptId);
-    // per-item overall accuracy already over all attempts
   });
 
   // Flipcard nav buttons
@@ -140,7 +130,6 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 // ---------------- DASHBOARD ----------------
-
 function renderDashboard(
   overallStatsEl,
   itemAnalysisBody,
@@ -148,12 +137,13 @@ function renderDashboard(
   studentSummaryEl
 ) {
   const teacherRecords = allRecords.filter(r => r.teacher === currentTeacher);
-
   const latestByStudentQuestion = buildLatestByStudentQuestion(teacherRecords);
   buildSbgQuestionCards(teacherRecords, latestByStudentQuestion);
 
   const studentNames = [...new Set(teacherRecords.map(r => r.studentName))];
-  const attemptIds = [...new Set(teacherRecords.map(r => getAttemptKey(r.timestamp)))];
+  const attemptIds = [
+    ...new Set(teacherRecords.map(r => getAttemptKey(r.timestamp)))
+  ];
   const correctCount = teacherRecords.filter(r => r.correct).length;
   const percentCorrect = teacherRecords.length
     ? Math.round((correctCount / teacherRecords.length) * 100)
@@ -175,13 +165,7 @@ function renderDashboard(
   });
 
   // bands for doughnut
-  const bands = {
-    "0.0–0.5": 0,
-    "1.0–1.5": 0,
-    "2.0–2.5": 0,
-    "3.0": 0
-  };
-
+  const bands = { "0.0–0.5": 0, "1.0–1.5": 0, "2.0–2.5": 0, "3.0": 0 };
   Object.entries(sbgCounts).forEach(([levelStr, count]) => {
     const level = parseFloat(levelStr);
     if (level <= 0.5) bands["0.0–0.5"] += count;
@@ -192,7 +176,6 @@ function renderDashboard(
 
   renderSbgDoughnut(bands);
 
-  // optional SBG summary (hidden)
   const sbgSummaryEl = document.getElementById("sbg-summary");
   if (sbgSummaryEl) {
     let sbgHtml = "";
@@ -225,7 +208,6 @@ function renderDashboard(
     renderItemAnalysis(teacherRecords, itemAnalysisBody);
   }
   renderItemBarChart(teacherRecords);
-
   populateStudentDropdown(studentNames, studentSelect);
   studentSummaryEl.innerHTML = "";
   const strip = document.getElementById("student-item-strip");
@@ -233,7 +215,6 @@ function renderDashboard(
 }
 
 // ---------------- SBG DOUGHNUT ----------------
-
 let sbgDoughnutChart = null;
 
 function renderSbgDoughnut(bands) {
@@ -274,26 +255,10 @@ function renderSbgDoughnut(bands) {
           position: "bottom",
           align: "center",
           labels: {
-            textAlign: "left",
-            color: "#3d2c2c",
-            generateLabels(chart) {
-              const ds = chart.data.datasets[0];
-              const values = ds.data;
-              const totalLocal =
-                values.reduce((s, v) => s + v, 0) || 1;
-              return chart.data.labels.map((label, i) => {
-                const value = values[i] || 0;
-                const pct = ((value / totalLocal) * 100).toFixed(0) + "%";
-                return {
-                  text: `${label} – ${pct}`,
-                  fillStyle: ds.backgroundColor[i],
-                  strokeStyle: "#ffffff",
-                  lineWidth: 2,
-                  hidden: isNaN(value) || value === 0,
-                  index: i
-                };
-              });
-            }
+            usePointStyle: true,
+            boxWidth: 12,
+            boxHeight: 12,
+            padding: 16
           }
         },
         datalabels: {
