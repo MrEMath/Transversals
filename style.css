@@ -408,6 +408,7 @@ button:disabled {
 }
 
 .flipcard-frame {
+  position: relative;
   flex: 1;
   max-width: 320px;
   border: 1px solid #918e8e;
@@ -453,4 +454,31 @@ button:disabled {
 
 #item-analysis-table-section {
   display: none;
+}
+.flipcard-image-wrapper {
+  position: relative;
+  display: inline-block;
+}
+
+/* Hidden popup by default */
+.flipcard-zoom-popup {
+  display: none;
+  position: absolute;
+  top: 0;
+  left: 105%;          /* to the right of the card */
+  z-index: 1000;
+  border: 2px solid #444;
+  background: #fff;
+  padding: 4px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+}
+
+.flipcard-zoom-popup img {
+  max-width: 450px;    /* adjust size as needed */
+  max-height: 450px;
+}
+
+/* Show popup on hover */
+.flipcard-image-wrapper:hover .flipcard-zoom-popup {
+  display: block;
 }
