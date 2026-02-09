@@ -558,40 +558,6 @@ function finishPractice() {
   saveAttemptsToSupabase(records);
 }
 
-// HOOK UP SUBMIT BUTTON TO finishPractice
-if (submitPracticeBtn) {
-  submitPracticeBtn.addEventListener("click", () => {
-    finishPractice();
-    // your existing summary-screen logic can follow here if you had it
-    checkBtn.addEventListener("click", () => {
-  saveCurrentAnswer();
-  // your existing auto‑check logic here, or leave blank if you removed it
-});
-
-hintBtn.addEventListener("click", () => {
-  const q = questions[currentIndex];
-  if (q.hint) {
-    feedback.textContent = q.hint;
-    feedback.className = "hint";
-  }
-});
-
-skipBtn.addEventListener("click", () => {
-  saveCurrentAnswer();
-  if (currentIndex < questions.length - 1) {
-    currentIndex++;
-    renderQuestion();
-  }
-});
-
-nextBtn.addEventListener("click", () => {
-  saveCurrentAnswer();
-  if (currentIndex < questions.length - 1) {
-    currentIndex++;
-    renderQuestion();
-  }
-  });
-  });
 // BUTTON HANDLERS
 checkBtn.addEventListener("click", () => {
   saveCurrentAnswer();
