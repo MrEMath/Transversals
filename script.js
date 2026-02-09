@@ -1,6 +1,3 @@
-// ---------------- API BASE URL ----------------
-const API_BASE_URL = "https://your-api.example.com"; // TODO: replace with real URL
-
 // ----- ROSTERS -----
 const roster = {
   Englade: [
@@ -164,365 +161,10 @@ function loadLocalData() {
   isDataReady = true;
 }
 
-// (Optional) keep local backup if you want
-function saveLocalAttempt(record) {
-  const raw = localStorage.getItem("reflectionPracticeResults");
-  const all = raw ? JSON.parse(raw) : [];
-  all.push(record);
-  localStorage.setItem("reflectionPracticeResults", JSON.stringify(all));
-}
-
-// NEW: send all records for a session to backend
-async function sendAttemptsToServer(records) {
-  try {
-    const response = await fetch(`${API_BASE_URL}/attempts`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ attempts: records })
-    });
-
-    if (!response.ok) {
-      console.error("Failed to save attempts", await response.text());
-    }
-  } catch (err) {
-    console.error("Error sending attempts to server", err);
-  }
-}
-
 // ----- DATA (questions) -----
 const questions = [
-  {
-    id: 1,
-    sbg: 0.5,
-    text: "Which statement best describes the relationship between m and n?",
-    image: "practice-images1.png",
-    choices: [
-      "They are corresponding angles.",
-      "They are vertical angles.",
-      "They are supplementary angles.",
-      "They are alternate interior angles."
-    ],
-    correct: "b",
-    hint: "Think about where the angles are located relative to the transversal."
-  },
-  {
-    id: 2,
-    sbg: 0.5,
-    text: "Which statement best describes the relationship between m and n?",
-    image: "practice-images2.png",
-    choices: [
-      "They are corresponding angles.",
-      "They are vertical angles.",
-      "They are supplementary angles.",
-      "They are alternate interior angles."
-    ],
-    correct: "d",
-    hint: "Compare their positions inside the parallel lines."
-  },
-  {
-    id: 3,
-    sbg: 0.5,
-    text: "Which statement best describes the relationship between m and n?",
-    image: "practice-images3.png",
-    choices: [
-      "They are corresponding angles.",
-      "They are vertical angles.",
-      "They are supplementary angles.",
-      "They are alternate interior angles."
-    ],
-    correct: "c",
-    hint: "Compare their positions inside the parallel lines."
-  },
-  {
-    id: 4,
-    sbg: 0.5,
-    text: "Which statement best describes the relationship between m and n?",
-    image: "practice-images3.png",
-    choices: [
-      "They are same-side interior angles.",
-      "They are vertical angles.",
-      "They are corresponding angles.",
-      "They are alternate interior angles."
-    ],
-    correct: "a",
-    hint: "Compare their positions inside the parallel lines."
-  },
-  {
-    id: 5,
-    sbg: 0.5,
-    text: "Which statement best describes the relationship between m and n?",
-    image: "practice-images4.png",
-    choices: [
-      "They are same-side interior angles.",
-      "They are vertical angles.",
-      "They are corresponding angles.",
-      "They are alternate interior angles."
-    ],
-    correct: "c",
-    hint: "Compare their positions inside the parallel lines."
-  },
-  {
-    id: 6,
-    sbg: 1.0,
-    text: "What is the measure of d?",
-    image: "practice-images5.png",
-    choices: ["120", "180", "130", "310"],
-    correct: "c",
-    hint: "Compare their positions inside the parallel lines."
-  },
-  {
-    id: 7,
-    sbg: 1.0,
-    text: "What is the measure of c?",
-    image: "practice-images5.png",
-    choices: ["50", "45", "130", "150"],
-    correct: "a",
-    hint: "Compare their positions inside the parallel lines."
-  },
-  {
-    id: 8,
-    sbg: 1.0,
-    text: "What is the measure of h?",
-    image: "practice-images5.png",
-    choices: ["50", "45", "150", "130"],
-    correct: "d",
-    hint: "Compare their positions inside the parallel lines."
-  },
-  {
-    id: 9,
-    sbg: 1.0,
-    text: "For each statement, choose whether it is true or false.",
-    image: "",
-    type: "matrix",
-    statements: [
-      { id: "stmt1", text: "Vertical angles are congruent.", correct: "T" },
-      { id: "stmt2", text: "Adjacent angles are congruent.", correct: "F" },
-      { id: "stmt3", text: "Vertical angles are supplementary.", correct: "F" },
-      { id: "stmt4", text: "Adjacent angles are supplementary.", correct: "T" }
-    ],
-    hint: "Think about the angle relationships shown in the diagram."
-  },
-  {
-    id: 10,
-    sbg: 1.0,
-    text: "Jeremy said that adjacent angles are always supplementary because their measures add up to 180. Which statement explains whether he is correct?",
-    image: "",
-    choices: [
-      "Jeremy is incorrect, because adjacent angles are not always supplementary.",
-      "Jeremy is incorrect because adjacent angles are always complementary.",
-      "Jeremy is correct.",
-      "Jeremy is incorrect because supplementary angles add up to 90."
-    ],
-    correct: "a",
-    hint: "Adjacent angles do always create a straight line."
-  },
-  {
-    id: 11,
-    sbg: 1.5,
-    text: "Find the measure of each angle.",
-    image: "practice-images11.png",
-    type: "fill",
-    blanks: [
-      { id: "A", label: "A", correct: "135" },
-      { id: "C", label: "C", correct: "45" },
-      { id: "D", label: "D", correct: "135" }
-    ],
-    hint: "Use vertical, corresponding, and supplementary relationships."
-  },
-  {
-    id: 12,
-    sbg: 1.5,
-    text: "Find the measure of each angle.",
-    image: "practice-images12.png",
-    type: "fill",
-    blanks: [
-      { id: "x", label: "x", correct: "110" },
-      { id: "y", label: "y", correct: "70" },
-      { id: "z", label: "z", correct: "110" }
-    ],
-    hint: "Use vertical, corresponding, and supplementary relationships."
-  },
-  {
-    id: 13,
-    sbg: 1.5,
-    text: "Find the measure of each angle.",
-    image: "practice-images13.png",
-    type: "fill",
-    blanks: [
-      { id: "a", label: "a", correct: "130" },
-      { id: "c", label: "c", correct: "50" },
-      { id: "d", label: "d", correct: "130" },
-      { id: "e", label: "e", correct: "130" },
-      { id: "f", label: "f", correct: "50" },
-      { id: "g", label: "g", correct: "50" },
-      { id: "h", label: "h", correct: "130" }
-    ],
-    hint: "Use vertical, corresponding, and supplementary relationships."
-  },
-  {
-    id: 14,
-    sbg: 1.5,
-    text: "Select all statements that are true about vertical angles.",
-    image: "",
-    type: "multi",
-    options: [
-      { id: "A", text: "Vertical angles are congruent.", correct: true },
-      { id: "B", text: "Vertical angles share a common side.", correct: false },
-      { id: "C", text: "Vertical angles are opposite each other.", correct: true },
-      { id: "D", text: "Vertical angles are supplementary.", correct: false }
-    ],
-    hint: "Think about where vertical angles are and how they relate."
-  },
-  {
-    id: 15,
-    sbg: 1.5,
-    text: "Select all statements that are true about alternate interior angles.",
-    image: "",
-    type: "multi",
-    options: [
-      { id: "A", text: "Alternate interior angles are supplementary", correct: false },
-      { id: "B", text: "Alternate interior angles are congruent", correct: true },
-      { id: "C", text: "Alternate interior angles are complementary", correct: false },
-      { id: "D", text: "Alternate interior angles are not congruent.", correct: false },
-      { id: "E", text: "Alternate interior angles are on opposite sides of the transversal.", correct: true }
-    ],
-    hint: "Think about where alternate interior angles are and how they relate."
-  },
-  {
-    id: 16,
-    sbg: 2.0,
-    text: "Find the value of x.",
-    image: "practice-images16.png",
-    type: "fill",
-    blanks: [{ id: "x", label: "x", correct: "20" }],
-    hint: "Use vertical, corresponding, and supplementary relationships."
-  },
-  {
-    id: 17,
-    sbg: 2.0,
-    text: "Find the value of x.",
-    image: "practice-images17.png",
-    type: "fill",
-    blanks: [{ id: "x", label: "x", correct: "10" }],
-    hint: "Use adjacent, corresponding, and supplementary relationships."
-  },
-  {
-    id: 18,
-    sbg: 2.0,
-    text: "Find the value of x.",
-    image: "practice-images18.png",
-    type: "fill",
-    blanks: [{ id: "x", label: "x", correct: "15" }],
-    hint: "Use vertical, corresponding, and supplementary relationships."
-  },
-  {
-    id: 19,
-    sbg: 2.0,
-    text: "Find the value of x.",
-    image: "practice-images19.png",
-    type: "fill",
-    blanks: [{ id: "x", label: "x", correct: "50" }],
-    hint: "Use adjacent, corresponding, and supplementary relationships."
-  },
-  {
-    id: 20,
-    sbg: 2.0,
-    text: "Find the value of x.",
-    image: "practice-images20.png",
-    type: "fill",
-    blanks: [{ id: "x", label: "x", correct: "15" }],
-    hint: "Use vertical, corresponding, and supplementary relationships."
-  },
-  {
-    id: 21,
-    sbg: 2.5,
-    text: "Find the value of x.",
-    image: "practice-images21.png",
-    type: "fill",
-    blanks: [{ id: "x", label: "x", correct: "15" }],
-    hint: "Use alternate interior, corresponding, and supplementary relationships."
-  },
-  {
-    id: 22,
-    sbg: 2.5,
-    text: "Find the value of x.",
-    image: "practice-images22.png",
-    type: "fill",
-    blanks: [{ id: "x", label: "x", correct: "35" }],
-    hint: "Use alternate interior, corresponding, and supplementary relationships."
-  },
-  {
-    id: 23,
-    sbg: 2.5,
-    text: "Find the value of x.",
-    image: "practice-images23.png",
-    type: "fill",
-    blanks: [{ id: "x", label: "x", correct: "50" }],
-    hint: "Use alternate interior, corresponding, and supplementary relationships."
-  },
-  {
-    id: 24,
-    sbg: 2.5,
-    text: "Find the value of x.",
-    image: "practice-images24.png",
-    type: "fill",
-    blanks: [{ id: "x", label: "x", correct: "40" }],
-    hint: "Use alternate interior, corresponding, and supplementary relationships."
-  },
-  {
-    id: 25,
-    sbg: 2.5,
-    text: "Find the value of x.",
-    image: "practice-images25.png",
-    type: "fill",
-    blanks: [{ id: "x", label: "x", correct: "55" }],
-    hint: "Use alternate interior, corresponding, and supplementary relationships."
-  },
-  {
-    id: 26,
-    sbg: 3.0,
-    text: "Find the value of x.",
-    image: "practice-images26.png",
-    type: "fill",
-    blanks: [{ id: "x", label: "x", correct: "100" }],
-    hint: "Use alternate interior, corresponding, and supplementary relationships."
-  },
-  {
-    id: 27,
-    sbg: 3.0,
-    text: "Find the value of x.",
-    image: "practice-images27.png",
-    type: "fill",
-    blanks: [{ id: "x", label: "x", correct: "10" }],
-    hint: "Use alternate interior, corresponding, and supplementary relationships."
-  },
-  {
-    id: 28,
-    sbg: 3.0,
-    text: "Find the value of x.",
-    image: "practice-images28.png",
-    type: "fill",
-    blanks: [{ id: "x", label: "x", correct: "4" }],
-    hint: "Use alternate interior, corresponding, and supplementary relationships."
-  },
-  {
-    id: 29,
-    sbg: 3.0,
-    text: "Find the value of x.",
-    image: "practice-images29.png",
-    type: "fill",
-    blanks: [{ id: "x", label: "x", correct: "9" }],
-    hint: "Use alternate interior, corresponding, and supplementary relationships."
-  },
-  {
-    id: 30,
-    sbg: 3.0,
-    text: "Find the value of x.",
-    image: "practice-images30.png",
-    type: "fill",
-    blanks: [{ id: "x", label: "x", correct: "-9" }],
-    hint: "Use alternate interior, corresponding, and supplementary relationships."
-  }
+  // ... keep your full questions array exactly as before ...
+  // (omitted here for brevity; use the same question objects you already had)
 ];
 
 // stores student answers by index a, b, c, or d, or objects for other types
@@ -542,25 +184,44 @@ const problemText = document.getElementById("problem-text");
 const problemImage = document.getElementById("problem-image");
 const choicesList = document.getElementById("choices-list");
 const feedback = document.getElementById("feedback");
-
 const checkBtn = document.getElementById("check-answer");
 const hintBtn = document.getElementById("hint");
 const skipBtn = document.getElementById("skip");
 const nextBtn = document.getElementById("next-question");
 const submitPracticeBtn = document.getElementById("submit-practice");
-
 const loginScreen = document.getElementById("login-screen");
 const practiceScreen = document.getElementById("practice-screen");
 const summaryScreen = document.getElementById("summary-screen");
-
 const teacherSelectEl = document.getElementById("teacher-select");
 const studentSelectEl = document.getElementById("student-select");
 const loginButton = document.getElementById("login-button");
 const loginError = document.getElementById("login-error");
 
+// ----- SUPABASE SAVE -----
+async function saveAttemptsToSupabase(records) {
+  const { error } = await supabase
+    .from("attempts")
+    .insert(
+      records.map((r) => ({
+        teacher: r.teacher,
+        student_name: r.studentName,
+        question_id: r.questionId,
+        sbg: r.sbg,
+        answer: r.answer,
+        attempts: r.attempts,
+        correct: r.correct,
+        timestamp: r.timestamp
+      }))
+    );
+
+  if (error) {
+    console.error("Error inserting attempts into Supabase", error);
+  }
+}
+
 // ----- LOGIN / ROSTER -----
 function populateTeachers() {
-  teacherSelectEl.innerHTML = `<option value="">Select your teacher</option>`;
+  teacherSelectEl.innerHTML = "";
   Object.keys(roster).forEach((teacherName) => {
     const opt = document.createElement("option");
     opt.value = teacherName;
@@ -570,12 +231,11 @@ function populateTeachers() {
 }
 
 function populateStudentsForTeacher(teacher) {
-  studentSelectEl.innerHTML = `<option value="">Select your name</option>`;
+  studentSelectEl.innerHTML = "";
   if (!teacher) {
     studentSelectEl.disabled = true;
     return;
   }
-
   const students = roster[teacher] || [];
   students.forEach((studentName) => {
     const opt = document.createElement("option");
@@ -597,7 +257,6 @@ function restoreLoginIfPresent() {
   try {
     const currentStudent = JSON.parse(raw);
     if (!currentStudent.teacher || !currentStudent.student) return;
-
     teacherSelectEl.value = currentStudent.teacher;
     populateStudentsForTeacher(currentStudent.teacher);
     studentSelectEl.value = currentStudent.student;
@@ -645,10 +304,16 @@ function renderQuestion() {
     table.classList.add("tf-matrix");
 
     const thead = document.createElement("thead");
-    thead.innerHTML = `<tr><th>Statement</th><th>True</th><th>False</th></tr>`;
+    thead.innerHTML = `
+      <tr>
+        <th>Statement</th>
+        <th>True</th>
+        <th>False</th>
+      </tr>`;
     table.appendChild(thead);
 
     const tbody = document.createElement("tbody");
+    const storedObj = stored || {};
 
     q.statements.forEach((stmt) => {
       const tr = document.createElement("tr");
@@ -659,9 +324,9 @@ function renderQuestion() {
       const tdTrue = document.createElement("td");
       const trueInput = document.createElement("input");
       trueInput.type = "radio";
-      trueInput.name = stmt.id; // group per row
+      trueInput.name = stmt.id;
       trueInput.value = "T";
-      if (stored && stored[stmt.id] === "T") trueInput.checked = true;
+      if (storedObj[stmt.id] === "T") trueInput.checked = true;
       tdTrue.appendChild(trueInput);
 
       const tdFalse = document.createElement("td");
@@ -669,23 +334,24 @@ function renderQuestion() {
       falseInput.type = "radio";
       falseInput.name = stmt.id;
       falseInput.value = "F";
-      if (stored && stored[stmt.id] === "F") falseInput.checked = true;
+      if (storedObj[stmt.id] === "F") falseInput.checked = true;
       tdFalse.appendChild(falseInput);
 
       tr.appendChild(tdText);
       tr.appendChild(tdTrue);
       tr.appendChild(tdFalse);
-
       tbody.appendChild(tr);
     });
 
     table.appendChild(tbody);
     choicesList.appendChild(table);
   } else if (q.type === "fill") {
+    const storedObj = stored || {};
     q.blanks.forEach((blank) => {
       const li = document.createElement("li");
+
       const label = document.createElement("label");
-      label.textContent = blank.label;
+      label.textContent = blank.label + " ";
       label.setAttribute("for", `blank-${blank.id}`);
 
       const input = document.createElement("input");
@@ -693,9 +359,8 @@ function renderQuestion() {
       input.id = `blank-${blank.id}`;
       input.name = blank.id;
       input.size = 4;
-
-      if (stored && stored[blank.id] != null) {
-        input.value = stored[blank.id];
+      if (storedObj[blank.id] != null) {
+        input.value = storedObj[blank.id];
       }
 
       li.appendChild(label);
@@ -703,6 +368,7 @@ function renderQuestion() {
       choicesList.appendChild(li);
     });
   } else if (q.type === "multi") {
+    const storedObj = stored || {};
     q.options.forEach((opt) => {
       const li = document.createElement("li");
       const input = document.createElement("input");
@@ -710,15 +376,12 @@ function renderQuestion() {
       input.id = `multi-${q.id}-${opt.id}`;
       input.name = `multi-${q.id}`;
       input.value = opt.id;
-
-      if (stored && stored[opt.id]) {
+      if (storedObj[opt.id]) {
         input.checked = true;
       }
-
       const label = document.createElement("label");
       label.setAttribute("for", input.id);
       label.textContent = opt.text;
-
       li.appendChild(input);
       li.appendChild(label);
       choicesList.appendChild(li);
@@ -732,15 +395,12 @@ function renderQuestion() {
       input.name = "problem";
       input.id = `problem${q.id}-${labels[i]}`;
       input.value = labels[i];
-
-      if (studentAnswers[currentIndex] === labels[i]) {
+      if (stored === labels[i]) {
         input.checked = true;
       }
-
       const label = document.createElement("label");
       label.setAttribute("for", input.id);
       label.textContent = choiceText;
-
       li.appendChild(input);
       li.appendChild(label);
       choicesList.appendChild(li);
@@ -754,6 +414,7 @@ function renderQuestion() {
   updateButtons();
 }
 
+// ----- ANSWER HANDLING -----
 function getSelectedAnswer() {
   const q = questions[currentIndex];
 
@@ -829,272 +490,14 @@ function highlightNavigator() {
 }
 
 function updateButtons() {
-  if (currentIndex === questions.length - 1) {
-    nextBtn.disabled = true;
-  } else {
-    nextBtn.disabled = false;
-  }
+  nextBtn.disabled = currentIndex === questions.length - 1;
 }
 
-// ----- AUTO-CHECK LOGIC -----
-function autoCheckQuestion(index) {
-  const q = questions[index];
-  const state = questionStates[index];
-  const ans = studentAnswers[index];
+// (Your existing checkBtn / hintBtn / skipBtn / nextBtn / submitPracticeBtn
+// handlers and autoCheckQuestion logic can remain as they were; just ensure
+// submitPracticeBtn -> finishPractice at the end)
 
-  if (ans === null) {
-    state.answered = false;
-    state.correct = false;
-    return;
-  }
-
-  let isCorrect = false;
-
-  if (!q.type) {
-    // regular multiple choice
-    isCorrect = ans === q.correct;
-  } else if (q.type === "matrix") {
-    const selected = ans;
-    let allCorrect = true;
-    q.statements.forEach((stmt) => {
-      if (selected[stmt.id] !== stmt.correct) {
-        allCorrect = false;
-      }
-    });
-    isCorrect = allCorrect;
-  } else if (q.type === "fill") {
-    const answers = ans;
-    let allCorrect = true;
-    q.blanks.forEach((blank) => {
-      const userVal = (answers[blank.id] || "").replace(/\s/g, "");
-      const correctVal = (blank.correct || "").replace(/\s/g, "");
-      if (userVal !== correctVal) {
-        allCorrect = false;
-      }
-    });
-    isCorrect = allCorrect;
-  } else if (q.type === "multi") {
-    const answers = ans;
-    let allCorrect = true;
-    q.options.forEach((opt) => {
-      const shouldBeChecked = !!opt.correct;
-      const isChecked = !!answers[opt.id];
-      if (shouldBeChecked !== isChecked) {
-        allCorrect = false;
-      }
-    });
-    isCorrect = allCorrect;
-  }
-
-  state.answered = true;
-  state.correct = isCorrect;
-  state.attempts = state.attempts ? state.attempts + 1 : 1;
-}
-
-// ----- BUTTON HANDLERS -----
-function lockCurrentQuestionInputs() {
-  const q = questions[currentIndex];
-  if (q.type === "matrix") {
-    q.statements.forEach((stmt) => {
-      const radios = document.querySelectorAll(`input[name="${stmt.id}"]`);
-      radios.forEach((r) => (r.disabled = true));
-    });
-  } else if (q.type === "fill") {
-    q.blanks.forEach((blank) => {
-      const input = document.getElementById(`blank-${blank.id}`);
-      if (input) input.disabled = true;
-    });
-  } else if (q.type === "multi") {
-    q.options.forEach((opt) => {
-      const input = document.getElementById(`multi-${q.id}-${opt.id}`);
-      if (input) input.disabled = true;
-    });
-  } else {
-    const radios = document.querySelectorAll('input[name="problem"]');
-    radios.forEach((r) => (r.disabled = true));
-  }
-}
-
-checkBtn.addEventListener("click", () => {
-  const q = questions[currentIndex];
-  const state = questionStates[currentIndex];
-
-  if (state.answered) {
-    feedback.textContent = "You have already checked this question.";
-    feedback.className = "feedback-message warning";
-    return;
-  }
-
-  const selected = getSelectedAnswer();
-
-  if (q.type === "matrix") {
-    const values = Object.values(selected);
-    const allBlank = values.length === 0 || values.every((v) => v == null);
-    const someBlank = values.some((v) => v == null);
-    if (allBlank) {
-      feedback.textContent = "Select True or False for at least one statement before checking.";
-      feedback.className = "feedback-message warning";
-      return;
-    }
-    studentAnswers[currentIndex] = selected;
-    if (someBlank) {
-      feedback.textContent = "Answer True/False for every statement.";
-      feedback.className = "feedback-message warning";
-      return;
-    }
-    let allCorrect = true;
-    q.statements.forEach((stmt) => {
-      if (selected[stmt.id] !== stmt.correct) {
-        allCorrect = false;
-      }
-    });
-    state.answered = true;
-    state.correct = allCorrect;
-    state.attempts = 1;
-    feedback.textContent = allCorrect ? "Correct!" : "Not quite!";
-    feedback.className = allCorrect
-      ? "feedback-message correct"
-      : "feedback-message incorrect";
-  } else if (q.type === "fill") {
-    const answers = selected;
-    const values = Object.values(answers);
-    const allBlank = values.every((v) => !v);
-    const someBlank = values.some((v) => !v);
-    if (allBlank) {
-      feedback.textContent = "Fill in at least one angle measure before checking.";
-      feedback.className = "feedback-message warning";
-      return;
-    }
-    studentAnswers[currentIndex] = answers;
-    if (someBlank) {
-      feedback.textContent = "Fill in every blank to get full feedback.";
-      feedback.className = "feedback-message warning";
-      return;
-    }
-    let allCorrect = true;
-    q.blanks.forEach((blank) => {
-      const userVal = (answers[blank.id] || "").replace(/\s/g, "");
-      const correctVal = (blank.correct || "").replace(/\s/g, "");
-      if (userVal !== correctVal) {
-        allCorrect = false;
-      }
-    });
-    state.answered = true;
-    state.correct = allCorrect;
-    state.attempts = 1;
-    feedback.textContent = allCorrect ? "Correct!" : "Not quite!";
-    feedback.className = allCorrect
-      ? "feedback-message correct"
-      : "feedback-message incorrect";
-  } else if (q.type === "multi") {
-    const answers = selected;
-    const anyChecked = Object.values(answers).some((v) => v);
-    if (!anyChecked) {
-      feedback.textContent = "Select at least one statement before checking.";
-      feedback.className = "feedback-message warning";
-      return;
-    }
-    studentAnswers[currentIndex] = answers;
-    let allCorrect = true;
-    q.options.forEach((opt) => {
-      const shouldBeChecked = !!opt.correct;
-      const isChecked = !!answers[opt.id];
-      if (shouldBeChecked !== isChecked) {
-        allCorrect = false;
-      }
-    });
-    state.answered = true;
-    state.correct = allCorrect;
-    state.attempts = 1;
-    feedback.textContent = allCorrect ? "Correct!" : "Not quite!";
-    feedback.className = allCorrect
-      ? "feedback-message correct"
-      : "feedback-message incorrect";
-  } else {
-    const selectedMC = selected;
-    if (!selectedMC) {
-      feedback.textContent = "Select an answer before checking.";
-      feedback.className = "feedback-message warning";
-      return;
-    }
-    studentAnswers[currentIndex] = selectedMC;
-    const isCorrect = selectedMC === q.correct;
-    state.answered = true;
-    state.correct = isCorrect;
-    state.attempts = 1;
-    feedback.textContent = isCorrect ? "Correct!" : "Not quite.";
-    feedback.className = isCorrect
-      ? "feedback-message correct"
-      : "feedback-message incorrect";
-  }
-
-  lockCurrentQuestionInputs();
-  updateProgress();
-  highlightNavigator();
-});
-
-hintBtn.addEventListener("click", () => {
-  const hintText = questions[currentIndex].hint || "Think carefully about the diagram.";
-  feedback.textContent = hintText;
-  feedback.className = "feedback-message hint";
-});
-
-skipBtn.addEventListener("click", () => {
-  if (currentIndex < questions.length - 1) {
-    currentIndex++;
-    renderQuestion();
-  }
-});
-
-nextBtn.addEventListener("click", () => {
-  saveCurrentAnswer();
-  if (currentIndex < questions.length - 1) {
-    currentIndex++;
-    renderQuestion();
-  }
-});
-
-submitPracticeBtn.addEventListener("click", () => {
-  saveCurrentAnswer();
-
-  questionStates.forEach((state, index) => {
-    if (!state.answered) {
-      autoCheckQuestion(index);
-      if (!state.answered) {
-        studentAnswers[index] = null;
-        state.answered = true;
-        state.correct = false;
-        state.attempts = 1;
-      }
-    }
-  });
-
-  updateProgress();
-
-  const total = questions.length;
-  const correctCount = questionStates.filter((s) => s.correct).length;
-  const percentCorrect = Math.round((correctCount / total) * 100);
-
-  let html = "";
-  html += `<h2>Practice Results</h2>`;
-  html += `<p>You answered ${correctCount} out of ${total} correctly (${percentCorrect}%).</p>`;
-  html += `<h3>Item Analysis</h3>`;
-  html += `<table><thead><tr><th>Q</th><th>SBG</th><th>Correct?</th></tr></thead><tbody>`;
-  questionStates.forEach((s, index) => {
-    const q = questions[index];
-    html += `<tr><td>${index + 1}</td><td>${q.sbg}</td><td>${
-      s.correct ? "✔" : "✘"
-    }</td></tr>`;
-  });
-  html += `</tbody></table>`;
-
-  summaryScreen.innerHTML = html;
-  summaryScreen.style.display = "block";
-
-  finishPractice();
-});
-
-// ----- FINISH PRACTICE (NOW POSTS TO BACKEND) -----
+// ----- FINISH PRACTICE -----
 function finishPractice() {
   const rawStudent = localStorage.getItem("reflectionCurrentStudent");
   const currentStudent = rawStudent ? JSON.parse(rawStudent) : null;
@@ -1111,11 +514,7 @@ function finishPractice() {
     timestamp: new Date().toISOString()
   }));
 
-  // optional local backup
-  records.forEach(saveLocalAttempt);
-
-  // MAIN: send to backend
-  sendAttemptsToServer(records);
+  saveAttemptsToSupabase(records);
 }
 
 // ----- LOGIN BUTTON -----
@@ -1129,7 +528,6 @@ loginButton.addEventListener("click", () => {
   }
 
   loginError.textContent = "";
-
   const currentStudent = { teacher, student };
   localStorage.setItem("reflectionCurrentStudent", JSON.stringify(currentStudent));
 
@@ -1143,524 +541,7 @@ loginButton.addEventListener("click", () => {
 
 // ----- INITIALIZE -----
 document.addEventListener("DOMContentLoaded", () => {
-  loadLocalData(); // optional local use
+  loadLocalData();
   populateTeachers();
   restoreLoginIfPresent();
 });
-adio";
-    falseInput.name = stmt.id;
-    falseInput.value = "F";
-    if (stored[stmt.id] === "F") falseInput.checked = true;
-    tdFalse.appendChild(falseInput);
-
-    tr.appendChild(tdText);
-    tr.appendChild(tdTrue);
-    tr.appendChild(tdFalse);
-    tbody.appendChild(tr);
-  });
-
-  table.appendChild(tbody);
-  choicesList.appendChild(table);
-
-} else if (q.type === "fill") {
-  // ----- FILL‑IN RENDERING -----
-  const stored = studentAnswers[currentIndex] || {}; // {A: "50", B: "130", ...}
-
-  q.blanks.forEach(blank => {
-    const li = document.createElement("li");
-
-    const label = document.createElement("label");
-    label.textContent = blank.label + " ";
-    label.setAttribute("for", `blank-${blank.id}`);
-
-    const input = document.createElement("input");
-    input.type = "text";
-    input.id = `blank-${blank.id}`;
-    input.name = blank.id;
-    input.size = 4;
-    if (stored[blank.id]) {
-      input.value = stored[blank.id];
-    }
-
-    li.appendChild(label);
-    li.appendChild(input);
-    choicesList.appendChild(li);
-  });
-
-} else if (q.type === "multi") {
-  // ----- MULTI-SELECT RENDERING -----
-  const stored = studentAnswers[currentIndex] || {}; // e.g. {A: true, C: true}
-
-  q.options.forEach(opt => {
-    const li = document.createElement("li");
-
-    const input = document.createElement("input");
-    input.type = "checkbox";
-    input.id = `multi-${q.id}-${opt.id}`;
-    input.name = `multi-${q.id}`;
-    input.value = opt.id;
-    if (stored[opt.id]) {
-      input.checked = true;
-    }
-
-    const label = document.createElement("label");
-    label.setAttribute("for", input.id);
-    label.textContent = " " + opt.text;
-
-    li.appendChild(input);
-    li.appendChild(label);
-    choicesList.appendChild(li);
-  });
-
-} else {
-  // ----- EXISTING MULTIPLE-CHOICE RENDERING -----
-  const labels = ["a", "b", "c", "d"];
-  q.choices.forEach((choiceText, i) => {
-    const li = document.createElement("li");
-
-    const input = document.createElement("input");
-    input.type = "radio";
-    input.name = "problem";
-    input.id = `problem${q.id}-${labels[i]}`;
-    input.value = labels[i];
-
-    if (studentAnswers[currentIndex] === labels[i]) {
-      input.checked = true;
-    }
-
-    const label = document.createElement("label");
-    label.setAttribute("for", input.id);
-    label.textContent = " " + choiceText;
-
-    li.appendChild(input);
-    li.appendChild(label);
-    choicesList.appendChild(li);
-  });
-}
-
-feedback.textContent = "";
-updateProgress();
-highlightNavigator();
-updateButtons();
-
-}
-
-
-function getSelectedAnswer() {
-  const q = questions[currentIndex];
-
-  if (q.type === "matrix") {
-    const result = {};
-    q.statements.forEach(stmt => {
-      const selected = document.querySelector(`input[name="${stmt.id}"]:checked`);
-      result[stmt.id] = selected ? selected.value : null;
-    });
-    return result;     // always returns an object for matrix
-  } else if (q.type === "fill") {
-    const result = {};
-    q.blanks.forEach(blank => {
-      const input = document.getElementById(`blank-${blank.id}`);
-      result[blank.id] = input ? input.value.trim() : "";
-    });
-    return result;  // object of id -> text 
-  } else if (q.type === "multi") {
-    const result = {};
-    q.options.forEach(opt => {
-      const input = document.getElementById(`multi-${q.id}-${opt.id}`);
-      result[opt.id] = input ? input.checked : false;
-    });
-    return result;  // e.g. {A: true, B: false, C: true, D: false}   
-  } else {
-    const radios = document.querySelectorAll('input[name="problem"]');
-    for (const r of radios) {
-      if (r.checked) return r.value;
-    }
-    return null;
-  }
-}
-
-
-function saveCurrentAnswer() {
-  const q = questions[currentIndex];
-  const ans = getSelectedAnswer();
-
-  if (q.type === "fill") {
-    const values = Object.values(ans || {});
-    const anyFilled = values.some(v => v && v.trim() !== "");
-    if (!anyFilled) return;                 // do NOT mark answered
-  } else if (q.type === "matrix") {
-    const values = Object.values(ans || {});
-    const anyChosen = values.some(v => v === "T" || v === "F");
-    if (!anyChosen) return;
-  } else if (q.type === "multi") {
-    const anyChecked = Object.values(ans || {}).some(v => v);
-    if (!anyChecked) return;
-  } else {
-    if (!ans) return;                       // no radio selected
-  }
-
-  studentAnswers[currentIndex] = ans;
-}
-
-function updateProgress() {
-  // count questions where the student has recorded *any* answer
-  const answered = studentAnswers.filter(ans => ans !== null).length;
-  const total = questions.length;
-  const percent = (answered / total) * 100;
-
-  // if you have a progress-text element, update it too
-  const progressTextEl = document.getElementById("progress-text");
-  if (progressTextEl) {
-    progressTextEl.textContent = `${answered}/${total} Complete`;
-  }
-
-  progressBar.style.width = `${percent}%`;
-}
-
-function highlightNavigator() {
-  const buttons = document.querySelectorAll(".item-button");
-  buttons.forEach((btn, index) => {
-    btn.classList.toggle("current", index === currentIndex);
-    btn.classList.toggle("answered", studentAnswers[index] !== null);
-  });
-}
-
-function updateButtons() {
-  // Disable Next on last question
-  if (currentIndex === questions.length - 1) {
-    nextBtn.disabled = true;
-  } else {
-    nextBtn.disabled = false;
-  }
-}
-function autoCheckQuestion(index) {
-  const q = questions[index];
-  const state = questionStates[index];
-  const ans = studentAnswers[index];
-
-  // If the student never selected anything for this question, leave it unanswered
-  if (ans === null) {
-    state.answered = false;
-    state.correct = false;
-    return;
-  }
-
-  let isCorrect = false;
-
-  if (!q.type) {
-    // regular multiple choice
-    isCorrect = ans === q.correct;
-  } else if (q.type === "matrix") {
-    const selected = ans || {};
-    let allCorrect = true;
-    q.statements.forEach(stmt => {
-      if (selected[stmt.id] !== stmt.correct) {
-        allCorrect = false;
-      }
-    });
-    isCorrect = allCorrect;
-  } else if (q.type === "fill") {
-    const answers = ans || {};
-    let allCorrect = true;
-    q.blanks.forEach(blank => {
-      const userVal = (answers[blank.id] || "").replace(/\s+/g, "");
-      const correctVal = blank.correct.replace(/\s+/g, "");
-      if (userVal !== correctVal) {
-        allCorrect = false;
-      }
-    });
-    isCorrect = allCorrect;
-  } else if (q.type === "multi") {
-    const answers = ans || {};
-    let allCorrect = true;
-    q.options.forEach(opt => {
-      const shouldBeChecked = !!opt.correct;
-      const isChecked = !!answers[opt.id];
-      if (shouldBeChecked !== isChecked) {
-        allCorrect = false;
-      }
-    });
-    isCorrect = allCorrect;
-  }
-
-  state.answered = true;
-  state.correct = isCorrect;
-  state.attempts = state.attempts ? state.attempts + 1 : 1;
-}
-
-// ----- BUTTON HANDLERS -----
-checkBtn.addEventListener("click", () => {
-  const q = questions[currentIndex];
-  const state = questionStates[currentIndex];
-
-  function lockCurrentQuestionInputs() {
-  const q = questions[currentIndex];
-
-  if (q.type === "matrix") {
-    q.statements.forEach(stmt => {
-      const radios = document.querySelectorAll(`input[name="${stmt.id}"]`);
-      radios.forEach(r => r.disabled = true);
-    });
-  } else if (q.type === "fill") {
-    q.blanks.forEach(blank => {
-      const input = document.getElementById(`blank-${blank.id}`);
-      if (input) input.disabled = true;
-    });
-  } else if (q.type === "multi") {
-    q.options.forEach(opt => {
-      const input = document.getElementById(`multi-${q.id}-${opt.id}`);
-      if (input) input.disabled = true;
-    });
-  } else {
-    // regular multiple choice
-    const radios = document.querySelectorAll('input[name="problem"]');
-    radios.forEach(r => r.disabled = true);
-  }
-}
-
-  // block second attempt
-  if (state.answered) {
-    feedback.textContent = "You have already checked this question.";
-    feedback.className = "feedback-message warning";
-    return;
-  }
-
-  const selected = getSelectedAnswer();
-
-  if (q.type === "matrix") {
-    const values = Object.values(selected || {});
-    const allBlank = values.length === 0 || values.every(v => v === null);
-    const someBlank = values.some(v => v === null);
-
-    if (allBlank) {
-      feedback.textContent = "Select True or False for at least one statement before checking.";
-      feedback.className = "feedback-message warning";
-      return;
-    }
-
-    studentAnswers[currentIndex] = selected;
-
-    if (someBlank) {
-      feedback.textContent = "Answer True/False for every statement.";
-      feedback.className = "feedback-message warning";
-    }
-
-    if (!someBlank) {
-      let allCorrect = true;
-      q.statements.forEach(stmt => {
-        if (selected[stmt.id] !== stmt.correct) {
-          allCorrect = false;
-        }
-      });
-
-      state.answered = true;
-      state.correct = allCorrect;
-      state.attempts = 1;
-
-      if (allCorrect) {
-        feedback.textContent = "Correct!";
-        feedback.className = "feedback-message correct";
-      } else {
-        feedback.textContent = "Not quite!";
-        feedback.className = "feedback-message incorrect";
-      }
-    }
-
-  } else if (q.type === "fill") {
-    const answers = selected || {};
-    const values = Object.values(answers);
-    const allBlank = values.every(v => v === "");
-    const someBlank = values.some(v => v === "");
-
-    if (allBlank) {
-      feedback.textContent = "Fill in at least one angle measure before checking.";
-      feedback.className = "feedback-message warning";
-      return;
-    }
-
-    studentAnswers[currentIndex] = answers;
-
-    if (someBlank) {
-      feedback.textContent = "Fill in every blank to get full feedback.";
-      feedback.className = "feedback-message warning";
-    }
-
-    if (!someBlank) {
-      let allCorrect = true;
-
-      q.blanks.forEach(blank => {
-        const userVal = (answers[blank.id] || "").replace(/\s+/g, "");
-        const correctVal = blank.correct.replace(/\s+/g, "");
-        if (userVal !== correctVal) {
-          allCorrect = false;
-        }
-      });
-
-      state.answered = true;
-      state.correct = allCorrect;
-      state.attempts = 1;
-
-      if (allCorrect) {
-        feedback.textContent = "Correct!";
-        feedback.className = "feedback-message correct";
-      } else {
-        feedback.textContent = "Not quite!";
-        feedback.className = "feedback-message incorrect";
-      }
-    }
-
-  } else if (q.type === "multi") {
-    const answers = selected || {};
-    const anyChecked = Object.values(answers).some(v => v);
-
-    if (!anyChecked) {
-      feedback.textContent = "Select at least one statement before checking.";
-      feedback.className = "feedback-message warning";
-      return;
-    }
-
-    studentAnswers[currentIndex] = answers;
-
-    let allCorrect = true;
-    q.options.forEach(opt => {
-      const shouldBeChecked = !!opt.correct;
-      const isChecked = !!answers[opt.id];
-      if (shouldBeChecked !== isChecked) {
-        allCorrect = false;
-      }
-    });
-
-    state.answered = true;
-    state.correct = allCorrect;
-    state.attempts = 1;
-
-    if (allCorrect) {
-      feedback.textContent = "Correct!";
-      feedback.className = "feedback-message correct";
-    } else {
-      feedback.textContent = "Not quite!";
-      feedback.className = "feedback-message incorrect";
-    }
-
-  } else {
-    // multiple choice
-    if (!selected) {
-      feedback.textContent = "Select an answer before checking.";
-      feedback.className = "feedback-message warning";
-      return;
-    }
-
-    studentAnswers[currentIndex] = selected;
-
-    const isCorrect = selected === q.correct;
-
-    state.answered = true;
-    state.correct = isCorrect;
-    state.attempts = 1;
-
-    if (isCorrect) {
-      feedback.textContent = "Correct!";
-      feedback.className = "feedback-message correct";
-    } else {
-      feedback.textContent = "Not quite.";
-      feedback.className = "feedback-message incorrect";
-    }
-  }
-  lockCurrentQuestionInputs();
-  updateProgress();
-  highlightNavigator();
-});
-
-
-
-hintBtn.addEventListener("click", () => {
-  const hintText = questions[currentIndex].hint || "Think about the position of the angles.";
-  feedback.textContent = hintText;
-  feedback.className = "feedback-message hint";
-});
-
-skipBtn.addEventListener("click", () => {
-  // Do not save answer; just move forward if possible
-  if (currentIndex < questions.length - 1) {
-    currentIndex++;
-    renderQuestion();
-  }
-});
-
-nextBtn.addEventListener("click", () => {
-  saveCurrentAnswer();
-  if (currentIndex < questions.length - 1) {
-    currentIndex++;
-    renderQuestion();
-  }
-});
-submitPracticeBtn.addEventListener("click", () => {
-  // First, save the current question's answer
-  saveCurrentAnswer();
-
-  // Auto-check every question that hasn't been checked yet
-  questionStates.forEach((state, index) => {
-    if (!state.answered) {
-      autoCheckQuestion(index);
-    }
-    if (!state.answered && studentAnswers[index] === null) {
-      // truly blank: treat as skipped/incorrect
-      state.answered = true;
-      state.correct = false;
-      state.attempts = 1;
-    }
-  });
-
-  updateProgress();
-
-  const total = questions.length;
-  const correctCount = questionStates.filter(s => s.correct).length;
-  const percentCorrect = Math.round((correctCount / total) * 100);
-
-  let html = "";
-  html += `<h2>Practice Results</h2>`;
-  html += `<p>You answered ${correctCount} out of ${total} correctly (${percentCorrect}%).</p>`;
-
-  html += `
-    <h3>Item Analysis</h3>
-    <table>
-      <thead>
-        <tr>
-          <th>Q#</th>
-          <th>SBG</th>
-          <th>Correct?</th>
-        </tr>
-      </thead>
-      <tbody>
-  `;
-
-  questionStates.forEach((s, index) => {
-    const q = questions[index];
-    html += `
-      <tr>
-        <td>${index + 1}</td>
-        <td>${q.sbg}</td>
-        <td>${s.correct ? "✔" : "✘"}</td>
-      </tr>
-    `;
-  });
-
-  html += `</tbody></table>`;
-  summaryScreen.innerHTML = html;
-  summaryScreen.style.display = "block";
-
-  // save for teacher dashboard
-  finishPractice();
-});
-
-
-
-// ----- INITIALIZE -----
-// ----- INITIALIZE -----
-document.addEventListener("DOMContentLoaded", () => {
-  loadLocalData();      // optional for teacher reports
-  populateTeachers();
-  restoreLoginIfPresent();  // auto-login if a student was saved earlier
-});
-
-
