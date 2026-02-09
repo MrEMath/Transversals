@@ -534,6 +534,7 @@ function updateButtons() {
 }
 
 // FINISH PRACTICE (local + Supabase)
+// FINISH PRACTICE (local + Supabase + summary)
 function finishPractice() {
   const rawStudent = localStorage.getItem("reflectionCurrentStudent");
   const currentStudent = rawStudent ? JSON.parse(rawStudent) : null;
@@ -546,12 +547,39 @@ function finishPractice() {
     sbg: q.sbg,
     answer: studentAnswers[index],
     attempts: questionStates[index].attempts,
-    correct: !!questionStates[index].correct, // <— force boolean
+    correct: !!questionStates[index].correct,  // force boolean
     timestamp: new Date().toISOString()
   }));
 
+  // keep existing local behavior
   records.forEach(saveLocalAttempt);
+
+  // also send to Supabase (if configured)
   saveAttemptsToSupabase(records);
+
+  // ---- ORIGINAL SUMMARY SCREEN ----
+  const total = questions.length;
+  const correctCount = questionStates.filter(s => s.correct === true).length;
+  const percentCorrect = total ? Math.round((correctCount / total) * 100) : 0;
+
+  let html = "";
+  html += `<h2>Practice Results</h2>`;
+  html += `<p>You answered ${correctCount} out of ${total} correctly (${percentCorrect}%).</p>`;
+  html += `<h3>Item Analysis</h3>`;
+  html += `<table><thead><tr><th>Q</th><th>SBG</th><th>Correct?</th></tr></thead><tbody>`;
+  questionStates.forEach((s, index) => {
+    const q = questions[index];
+    html += `<tr><td>${index + 1}</td><td>${q.sbg}</td><td>${
+      s.correct ? "✔" : "✘"
+    }</td></tr>`;
+  });
+  html += `</tbody></table>`;
+
+  if (summaryScreen) {
+    practiceScreen.style.display = "none";
+    summaryScreen.innerHTML = html;
+    summaryScreen.style.display = "block";
+  }
 }
 
 
