@@ -561,7 +561,7 @@ function finishPractice() {
 // BUTTON HANDLERS
 checkBtn.addEventListener("click", () => {
   saveCurrentAnswer();
-  // (optional) auto-check logic here
+  // optional auto-check logic
 });
 
 hintBtn.addEventListener("click", () => {
