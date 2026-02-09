@@ -592,6 +592,35 @@ nextBtn.addEventListener("click", () => {
   }
   });
   });
+// BUTTON HANDLERS
+checkBtn.addEventListener("click", () => {
+  saveCurrentAnswer();
+  // (optional) auto-check logic here
+});
+
+hintBtn.addEventListener("click", () => {
+  const q = questions[currentIndex];
+  if (q.hint) {
+    feedback.textContent = q.hint;
+    feedback.className = "hint";
+  }
+});
+
+skipBtn.addEventListener("click", () => {
+  saveCurrentAnswer();
+  if (currentIndex < questions.length - 1) {
+    currentIndex++;
+    renderQuestion();
+  }
+});
+
+nextBtn.addEventListener("click", () => {
+  saveCurrentAnswer();
+  if (currentIndex < questions.length - 1) {
+    currentIndex++;
+    renderQuestion();
+  }
+});
 
 if (submitPracticeBtn) {
   submitPracticeBtn.addEventListener("click", () => {
@@ -599,6 +628,7 @@ if (submitPracticeBtn) {
     // optional: show summary screen here if you had that logic
   });
 }
+
 
 // INITIALIZE
 document.addEventListener("DOMContentLoaded", () => {
