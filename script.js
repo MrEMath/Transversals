@@ -70,10 +70,10 @@ function saveLocalAttempt(record) {
 
 // ----- SUPABASE SAVE (added) -----
 async function saveAttemptsToSupabase(records) {
-  if (typeof supabase === "undefined") {
+  if (typeof window.supabaseClient === "undefined") {
     return;
   }
-  const { error } = await supabase
+  const { error } = await window.supabaseClient
     .from("attempts")
     .insert(
       records.map((r) => ({
