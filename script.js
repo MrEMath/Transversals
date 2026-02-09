@@ -546,16 +546,14 @@ function finishPractice() {
     sbg: q.sbg,
     answer: studentAnswers[index],
     attempts: questionStates[index].attempts,
-    correct: questionStates[index].correct,
+    correct: !!questionStates[index].correct, // <— force boolean
     timestamp: new Date().toISOString()
   }));
 
-  // keep existing local behavior
   records.forEach(saveLocalAttempt);
-
-  // new: also send to Supabase (if configured)
   saveAttemptsToSupabase(records);
 }
+
 
 // BUTTON HANDLERS
 checkBtn.addEventListener("click", () => {
