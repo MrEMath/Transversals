@@ -1,5 +1,5 @@
 // ---------------- API BASE URL (no longer used, safe to leave or remove) ----------------
-const API_BASE_URL = "https://your-api.example.com"; // TODO: replace or ignore
+const API_BASE_URL = "https://xsmhhduixpyotdhsjizr.supabase.co"; // TODO: replace or ignore
 
 // ----- ROSTERS -----
 const roster = {
@@ -563,6 +563,40 @@ if (submitPracticeBtn) {
   submitPracticeBtn.addEventListener("click", () => {
     finishPractice();
     // your existing summary-screen logic can follow here if you had it
+    checkBtn.addEventListener("click", () => {
+  saveCurrentAnswer();
+  // your existing auto‑check logic here, or leave blank if you removed it
+});
+
+hintBtn.addEventListener("click", () => {
+  const q = questions[currentIndex];
+  if (q.hint) {
+    feedback.textContent = q.hint;
+    feedback.className = "hint";
+  }
+});
+
+skipBtn.addEventListener("click", () => {
+  saveCurrentAnswer();
+  if (currentIndex < questions.length - 1) {
+    currentIndex++;
+    renderQuestion();
+  }
+});
+
+nextBtn.addEventListener("click", () => {
+  saveCurrentAnswer();
+  if (currentIndex < questions.length - 1) {
+    currentIndex++;
+    renderQuestion();
+  }
+  });
+  });
+
+if (submitPracticeBtn) {
+  submitPracticeBtn.addEventListener("click", () => {
+    finishPractice();
+    // optional: show summary screen here if you had that logic
   });
 }
 
