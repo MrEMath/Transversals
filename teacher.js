@@ -1,3 +1,6 @@
+// ---------------- API BASE URL ----------------
+const API_BASE_URL = "https://your-api.example.com"; // TODO: replace with real URL
+
 // ---------------- TEACHER CONFIG ----------------
 const TEACHER_PASSWORDS = {
   Englade: "englade2026",
@@ -6,13 +9,25 @@ const TEACHER_PASSWORDS = {
   Massengill: "massengill2026",
   Clark: "clark2026"
 };
+
 let currentTeacher = null;
 let allRecords = [];
 
-// ---------------- DATA LOAD ----------------
-function loadData() {
-  const raw = localStorage.getItem("reflectionPracticeResults");
-  allRecords = raw ? JSON.parse(raw) : [];
+// ---------------- DATA LOAD (FROM BACKEND) ----------------
+async function loadData() {
+  try {
+    const response = await fetch(`${API_BASE_URL}/attempts`);
+    if (!response.ok) {
+      console.error("Failed to load attempts", await response.text());
+      allRecords = [];
+      return;
+    }
+    const data = await response.json();
+    allRecords = Array.isArray(data.attempts) ? data.attempts : [];
+  } catch (err) {
+    console.error("Error loading attempts from server", err);
+    allRecords = [];
+  }
 }
 
 // collapse timestamps to the minute so attempts are not split
@@ -23,7 +38,7 @@ function getAttemptKey(ts) {
 }
 
 // ---------------- DOM READY ----------------
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
   const teacherNameEl = document.getElementById("teacher-name");
   const teacherPasswordEl = document.getElementById("teacher-password");
   const teacherLoginBtn = document.getElementById("teacher-login-btn");
@@ -31,13 +46,20 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const loginSection = document.getElementById("teacher-login");
   const dashboardSection = document.getElementById("teacher-dashboard");
+
   const overallStatsEl = document.getElementById("overall-stats");
   const itemAnalysisBody = document.querySelector("#item-analysis-table tbody");
   const studentSelect = document.getElementById("student-select");
   const studentSummaryEl = document.getElementById("student-summary");
   const attemptSelect = document.getElementById("attempt-select");
 
-  loadData();
+  // load data from backend before any dashboard rendering
+  await loadData();
+
+  // show placeholder in flipcard on first load
+  let currentStudentItems = [];
+  let currentItemIndex = 0;
+  updateItemFlipcard();
 
   // Login
   teacherLoginBtn.addEventListener("click", () => {
@@ -48,6 +70,7 @@ document.addEventListener("DOMContentLoaded", () => {
       teacherLoginError.textContent = "Select your name and enter password.";
       return;
     }
+
     if (TEACHER_PASSWORDS[name] !== pwd) {
       teacherLoginError.textContent = "Incorrect password.";
       return;
@@ -55,11 +78,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
     teacherLoginError.textContent = "";
     currentTeacher = name;
-
     loginSection.style.display = "none";
     dashboardSection.style.display = "block";
-    document.getElementById("dashboard-title").textContent =
-      `Teacher Dashboard – ${name}`;
+
+    document.getElementById("dashboard-title").textContent = `Teacher Dashboard – ${name}`;
 
     renderDashboard(
       overallStatsEl,
@@ -67,11 +89,6 @@ document.addEventListener("DOMContentLoaded", () => {
       studentSelect,
       studentSummaryEl
     );
-
-    // show placeholder in flipcard on first load
-    currentStudentItems = [];
-    currentItemIndex = 0;
-    updateItemFlipcard();
   });
 
   // Student dropdown change
@@ -79,6 +96,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const name = studentSelect.value;
     studentSummaryEl.innerHTML = "";
     attemptSelect.innerHTML = "";
+
     const strip = document.getElementById("student-item-strip");
     if (strip) strip.innerHTML = "";
 
@@ -95,7 +113,8 @@ document.addEventListener("DOMContentLoaded", () => {
   // Attempt dropdown change
   attemptSelect.addEventListener("change", () => {
     const attemptId = attemptSelect.value;
-    const studentName = attemptSelect._studentName;
+    const studentName = attemptSelect.studentName;
+
     const strip = document.getElementById("student-item-strip");
     if (!strip) return;
 
@@ -127,6 +146,112 @@ document.addEventListener("DOMContentLoaded", () => {
       updateItemFlipcard();
     });
   }
+
+  // store these on window so helper functions can update them
+  window.computeStudentItemAccuracy = function (studentName) {
+    const records = allRecords.filter(
+      (r) => r.teacher === currentTeacher && r.studentName === studentName
+    );
+
+    const byQuestion = {};
+    records.forEach((r) => {
+      const qid = r.questionId;
+      if (!byQuestion[qid]) byQuestion[qid] = [];
+      byQuestion[qid].push(r);
+    });
+
+    currentStudentItems = Object.keys(byQuestion)
+      .sort((a, b) => Number(a) - Number(b))
+      .map((qid) => {
+        const group = byQuestion[qid];
+        const correct = group.filter((r) => r.correct).length;
+        const total = group.length || 1;
+        const percent = Math.round((correct / total) * 100);
+        const sbg = group[0].sbg;
+        return { questionId: Number(qid), sbg, percent };
+      });
+
+    currentItemIndex = 0;
+    updateItemFlipcard();
+  };
+
+  // flipcard updater
+  function updateItemFlipcard() {
+    const ITEMSCREENSHOTS = {
+      0: "items-images0.png",
+      1: "items-images1.png",
+      2: "items-images2.png",
+      3: "items-images3.png",
+      4: "items-images4.png",
+      5: "items-images5.png",
+      6: "items-images6.png",
+      7: "items-images7.png",
+      8: "items-images8.png",
+      9: "items-images9.png",
+      10: "items-images10.png",
+      11: "items-images11.png",
+      12: "items-images12.png",
+      13: "items-images13.png",
+      14: "items-images14.png",
+      15: "items-images15.png",
+      16: "items-images16.png",
+      17: "items-images17.png",
+      18: "items-images18.png",
+      19: "items-images19.png",
+      20: "items-images20.png",
+      21: "items-images21.png",
+      22: "items-images22.png",
+      23: "items-images23.png",
+      24: "items-images24.png",
+      25: "items-images25.png",
+      26: "items-images26.png",
+      27: "items-images27.png",
+      28: "items-images28.png",
+      29: "items-images29.png",
+      30: "items-images30.png"
+    };
+
+    const imgEl = document.getElementById("item-screenshot");
+    const zoomPopupImg = document.querySelector(".flipcard-zoom-popup img");
+    const percentEl = document.getElementById("accuracy-percent");
+    const circleEl = document.getElementById("accuracy-circle");
+
+    if (!imgEl || !percentEl || !circleEl) return;
+
+    if (!currentStudentItems || !currentStudentItems.length) {
+      const placeholderSrc = ITEMSCREENSHOTS[0];
+      imgEl.src = placeholderSrc;
+      imgEl.alt = "Select a student to view item performance.";
+      if (zoomPopupImg) {
+        zoomPopupImg.src = placeholderSrc;
+        zoomPopupImg.alt = "Select a student to view item performance.";
+      }
+      percentEl.textContent = "--";
+      circleEl.style.borderColor = "#ccc";
+      percentEl.style.color = "#ccc";
+      return;
+    }
+
+    const { questionId, percent, sbg } = currentStudentItems[currentItemIndex];
+    const src = ITEMSCREENSHOTS[questionId] || ITEMSCREENSHOTS[0];
+    imgEl.src = src;
+    imgEl.alt = `Question ${questionId} SBG ${sbg}`;
+
+    if (zoomPopupImg) {
+      zoomPopupImg.src = src;
+      zoomPopupImg.alt = `Zoomed question ${questionId} SBG ${sbg}`;
+    }
+
+    percentEl.textContent = `${percent}%`;
+
+    let color = "#c51d34";
+    if (percent >= 90) color = "#0067A5";
+    else if (percent >= 80) color = "#00A86B";
+    else if (percent >= 60) color = "#FFBF00";
+
+    circleEl.style.borderColor = color;
+    percentEl.style.color = color;
+  }
 });
 
 // ---------------- DASHBOARD ----------------
@@ -136,41 +261,51 @@ function renderDashboard(
   studentSelect,
   studentSummaryEl
 ) {
-  const teacherRecords = allRecords.filter(r => r.teacher === currentTeacher);
+  const teacherRecords = allRecords.filter(
+    (r) => r.teacher === currentTeacher
+  );
+
   const latestByStudentQuestion = buildLatestByStudentQuestion(teacherRecords);
   buildSbgQuestionCards(teacherRecords, latestByStudentQuestion);
 
-  const studentNames = [...new Set(teacherRecords.map(r => r.studentName))];
-  const attemptIds = [
-    ...new Set(teacherRecords.map(r => getAttemptKey(r.timestamp)))
+  const studentNames = [
+    ...new Set(teacherRecords.map((r) => r.studentName))
   ];
-  const correctCount = teacherRecords.filter(r => r.correct).length;
+  const attemptIds = [
+    ...new Set(teacherRecords.map((r) => getAttemptKey(r.timestamp)))
+  ];
+
+  const correctCount = teacherRecords.filter((r) => r.correct).length;
   const percentCorrect = teacherRecords.length
     ? Math.round((correctCount / teacherRecords.length) * 100)
     : 0;
 
-  // build per-student current SBG
   const byStudent = {};
-  teacherRecords.forEach(r => {
+  teacherRecords.forEach((r) => {
     if (!byStudent[r.studentName]) byStudent[r.studentName] = [];
     byStudent[r.studentName].push(r);
   });
 
   const sbgCounts = {};
-  Object.keys(byStudent).forEach(name => {
+  Object.keys(byStudent).forEach((name) => {
     const level = computeStudentCurrentSbg(byStudent[name]);
     const key = level.toString();
     if (!sbgCounts[key]) sbgCounts[key] = 0;
-    sbgCounts[key]++;
+    sbgCounts[key] += 1;
   });
 
-  // bands for doughnut
-  const bands = { "0.0–0.5": 0, "1.0–1.5": 0, "2.0–2.5": 0, "3.0": 0 };
+  const bands = {
+    "0.0-0.5": 0,
+    "1.0-1.5": 0,
+    "2.0-2.5": 0,
+    "3.0": 0
+  };
+
   Object.entries(sbgCounts).forEach(([levelStr, count]) => {
     const level = parseFloat(levelStr);
-    if (level <= 0.5) bands["0.0–0.5"] += count;
-    else if (level <= 1.5) bands["1.0–1.5"] += count;
-    else if (level <= 2.5) bands["2.0–2.5"] += count;
+    if (level <= 0.5) bands["0.0-0.5"] += count;
+    else if (level <= 1.5) bands["1.0-1.5"] += count;
+    else if (level <= 2.5) bands["2.0-2.5"] += count;
     else bands["3.0"] += count;
   });
 
@@ -179,11 +314,11 @@ function renderDashboard(
   const sbgSummaryEl = document.getElementById("sbg-summary");
   if (sbgSummaryEl) {
     let sbgHtml = "";
+    const totalStudents = Object.keys(byStudent).length || 1;
     Object.keys(sbgCounts)
       .sort((a, b) => Number(a) - Number(b))
-      .forEach(key => {
+      .forEach((key) => {
         const count = sbgCounts[key];
-        const totalStudents = Object.keys(byStudent).length || 1;
         const pct = Math.round((count / totalStudents) * 100);
         sbgHtml += `
           <div class="sbg-row">
@@ -196,6 +331,7 @@ function renderDashboard(
         `;
       });
     sbgSummaryEl.innerHTML = sbgHtml;
+    sbgSummaryEl.style.display = "block";
   }
 
   overallStatsEl.innerHTML = `
@@ -206,8 +342,9 @@ function renderDashboard(
 
   if (itemAnalysisBody) {
     renderItemAnalysis(teacherRecords, itemAnalysisBody);
+    renderItemBarChart(teacherRecords);
   }
-  renderItemBarChart(teacherRecords);
+
   populateStudentDropdown(studentNames, studentSelect);
   studentSummaryEl.innerHTML = "";
   const strip = document.getElementById("student-item-strip");
@@ -221,11 +358,16 @@ function renderSbgDoughnut(bands) {
   const ctx = document.getElementById("sbg-doughnut");
   if (!ctx) return;
 
-  const labels = ["SBG 0.0–0.5", "SBG 1.0–1.5", "SBG 2.0–2.5", "SBG 3.0"];
+  const labels = [
+    "SBG 0.0–0.5",
+    "SBG 1.0–1.5",
+    "SBG 2.0–2.5",
+    "SBG 3.0"
+  ];
   const data = [
-    bands["0.0–0.5"],
-    bands["1.0–1.5"],
-    bands["2.0–2.5"],
+    bands["0.0-0.5"],
+    bands["1.0-1.5"],
+    bands["2.0-2.5"],
     bands["3.0"]
   ];
   const colors = ["#F04923", "#FFBF00", "#00A86B", "#0067A5"];
@@ -263,7 +405,9 @@ function renderSbgDoughnut(bands) {
         },
         datalabels: {
           color: "#ffffff",
-          font: { weight: "bold" },
+          font: {
+            weight: "bold"
+          },
           formatter(value, context) {
             const dataset = context.dataset.data;
             const sum = dataset.reduce((a, b) => a + b, 0) || 1;
@@ -273,13 +417,11 @@ function renderSbgDoughnut(bands) {
         }
       },
       cutout: "60%"
-    },
-    plugins: [ChartDataLabels]
+    }
   });
 }
 
 // ---------------- CLASS ITEM BAR CHART ----------------
-
 let itemBarChart = null;
 
 function renderItemBarChart(records) {
@@ -292,7 +434,7 @@ function renderItemBarChart(records) {
   }
 
   const byQuestion = {};
-  records.forEach(r => {
+  records.forEach((r) => {
     const qid = r.questionId;
     if (!byQuestion[qid]) byQuestion[qid] = [];
     byQuestion[qid].push(r);
@@ -304,9 +446,9 @@ function renderItemBarChart(records) {
 
   Object.keys(byQuestion)
     .sort((a, b) => Number(a) - Number(b))
-    .forEach(qid => {
+    .forEach((qid) => {
       const group = byQuestion[qid];
-      const correct = group.filter(r => r.correct).length;
+      const correct = group.filter((r) => r.correct).length;
       const total = group.length || 1;
       const percent = Math.round((correct / total) * 100);
       labels.push(`Q${qid}`);
@@ -314,7 +456,7 @@ function renderItemBarChart(records) {
       sbgLabels.push(group[0].sbg);
     });
 
-  const bgColors = sbgLabels.map(level => {
+  const bgColors = sbgLabels.map((level) => {
     if (level <= 0.5) return "#F04923";
     if (level <= 1.5) return "#FFBF00";
     if (level <= 2.5) return "#00A86B";
@@ -335,7 +477,7 @@ function renderItemBarChart(records) {
       labels,
       datasets: [
         {
-          label: "% Correct",
+          label: "Correct",
           data: percents,
           backgroundColor: bgColors
         }
@@ -348,7 +490,7 @@ function renderItemBarChart(records) {
           callbacks: {
             label(context) {
               const idx = context.dataIndex;
-              return `Q${labels[idx]} (SBG ${sbgLabels[idx]}): ${percents[idx]}%`;
+              return `${labels[idx]} SBG ${sbgLabels[idx]} – ${percents[idx]}%`;
             }
           }
         }
@@ -358,7 +500,9 @@ function renderItemBarChart(records) {
           beginAtZero: true,
           max: 100,
           ticks: {
-            callback: v => v + "%"
+            callback(v) {
+              return v;
+            }
           }
         }
       }
@@ -366,8 +510,7 @@ function renderItemBarChart(records) {
   });
 }
 
-// ---------------- SBG QUESTION CARDS (SAFE, NO-OP IF MISSING) ----------------
-
+// ---------------- SBG QUESTION CARDS ----------------
 function buildSbgQuestionCards(teacherRecords, latestByStudentQuestion) {
   const container = document.getElementById("sbg-question-cards");
   if (!container) return;
@@ -375,11 +518,9 @@ function buildSbgQuestionCards(teacherRecords, latestByStudentQuestion) {
   container.innerHTML = "";
 
   const sbgGroups = {};
-
-  teacherRecords.forEach(r => {
+  teacherRecords.forEach((r) => {
     const sbgKey = r.sbg.toString();
     const qid = r.questionId;
-
     if (!sbgGroups[sbgKey]) sbgGroups[sbgKey] = {};
     if (!sbgGroups[sbgKey][qid]) sbgGroups[sbgKey][qid] = [];
     sbgGroups[sbgKey][qid].push(r);
@@ -387,7 +528,7 @@ function buildSbgQuestionCards(teacherRecords, latestByStudentQuestion) {
 
   Object.keys(sbgGroups)
     .sort((a, b) => Number(a) - Number(b))
-    .forEach(sbgKey => {
+    .forEach((sbgKey) => {
       const questions = sbgGroups[sbgKey];
       const card = document.createElement("div");
       card.className = "sbg-card";
@@ -397,16 +538,15 @@ function buildSbgQuestionCards(teacherRecords, latestByStudentQuestion) {
 
       Object.keys(questions)
         .sort((a, b) => Number(a) - Number(b))
-        .forEach(qid => {
+        .forEach((qid) => {
           const qRecords = questions[qid];
-
-          const correct = qRecords.filter(r => r.correct).length;
-          const total = qRecords.length;
+          const correct = qRecords.filter((r) => r.correct).length;
+          const total = qRecords.length || 1;
           const pct = total ? Math.round((correct / total) * 100) : 0;
 
           const byStudent = {};
-          qRecords.forEach(r => {
-            const key = `${r.studentName}|${r.questionId}`;
+          qRecords.forEach((r) => {
+            const key = `${r.studentName}-${r.questionId}`;
             const latest = latestByStudentQuestion[key];
             if (!latest) return;
             if (!byStudent[latest.studentName]) {
@@ -418,24 +558,22 @@ function buildSbgQuestionCards(teacherRecords, latestByStudentQuestion) {
             a.studentName.localeCompare(b.studentName)
           );
 
-          inner += `
-            <div class="sbg-question-tile">
-              <div class="sbg-question-header">
-                <span>Q${qid}</span>
-                <span>${pct}% correct</span>
-              </div>
-              <div class="sbg-question-students">
-                ${students
-                  .map(
-                    r =>
-                      `<div class="sbg-question-student">${r.studentName} – ${
-                        r.correct ? "✔" : "✘"
-                      }</div>`
-                  )
-                  .join("")}
-              </div>
+          inner += `<div class="sbg-question-tile">
+            <div class="sbg-question-header">
+              <span>Q${qid}</span>
+              <span>${pct}% correct</span>
             </div>
-          `;
+            <div class="sbg-question-students">
+              ${students
+                .map(
+                  (r) =>
+                    `<div class="sbg-question-student">${r.studentName} ${
+                      r.correct ? "✔" : "✘"
+                    }</div>`
+                )
+                .join("")}
+            </div>
+          </div>`;
         });
 
       inner += `</div>`;
@@ -445,12 +583,11 @@ function buildSbgQuestionCards(teacherRecords, latestByStudentQuestion) {
 }
 
 // ---------------- ITEM ANALYSIS TABLE ----------------
-
 function renderItemAnalysis(records, itemAnalysisBody) {
   itemAnalysisBody.innerHTML = "";
 
   const byQuestion = {};
-  records.forEach(r => {
+  records.forEach((r) => {
     const qid = r.questionId;
     if (!byQuestion[qid]) byQuestion[qid] = [];
     byQuestion[qid].push(r);
@@ -458,10 +595,10 @@ function renderItemAnalysis(records, itemAnalysisBody) {
 
   Object.keys(byQuestion)
     .sort((a, b) => a - b)
-    .forEach(qid => {
+    .forEach((qid) => {
       const group = byQuestion[qid];
-      const correct = group.filter(r => r.correct).length;
-      const total = group.length;
+      const correct = group.filter((r) => r.correct).length;
+      const total = group.length || 1;
       const percent = total ? Math.round((correct / total) * 100) : 0;
       const sbgLevel = group[0].sbg;
 
@@ -476,22 +613,24 @@ function renderItemAnalysis(records, itemAnalysisBody) {
 }
 
 function populateStudentDropdown(studentNames, studentSelect) {
-  studentSelect.innerHTML = '<option value="">Select a student</option>';
-  studentNames.sort().forEach(name => {
-    const opt = document.createElement("option");
-    opt.value = name;
-    opt.textContent = name;
-    studentSelect.appendChild(opt);
-  });
+  studentSelect.innerHTML = `<option value="">Select a student</option>`;
+  studentNames
+    .sort((a, b) => a.localeCompare(b))
+    .forEach((name) => {
+      const opt = document.createElement("option");
+      opt.value = name;
+      opt.textContent = name;
+      studentSelect.appendChild(opt);
+    });
 }
 
 function buildLatestByStudentQuestion(teacherRecords) {
   const latest = {};
-  teacherRecords.forEach(r => {
-    const key = `${r.studentName}|${r.questionId}`;
+  teacherRecords.forEach((r) => {
+    const key = `${r.studentName}-${r.questionId}`;
     if (!latest[key]) {
       latest[key] = r;
-    } else if (getAttemptKey(r.timestamp) > latest[key].timestamp) {
+    } else if (getAttemptKey(r.timestamp) > getAttemptKey(latest[key].timestamp)) {
       latest[key] = r;
     }
   });
@@ -499,23 +638,23 @@ function buildLatestByStudentQuestion(teacherRecords) {
 }
 
 // ---------------- STUDENT DETAIL ----------------
-
 function renderStudentSummaryAndAttempts(
   studentName,
   studentSummaryEl,
   attemptSelect
 ) {
   const records = allRecords.filter(
-    r => r.teacher === currentTeacher && r.studentName === studentName
+    (r) => r.teacher === currentTeacher && r.studentName === studentName
   );
+
   if (!records.length) {
     studentSummaryEl.textContent = "No data for this student.";
     return;
   }
 
   const byAttempt = {};
-  records.forEach(r => {
-const attemptId = getAttemptKey(getAttemptKey(r.timestamp));
+  records.forEach((r) => {
+    const attemptId = getAttemptKey(r.timestamp);
     if (!byAttempt[attemptId]) byAttempt[attemptId] = [];
     byAttempt[attemptId].push(r);
   });
@@ -525,10 +664,11 @@ const attemptId = getAttemptKey(getAttemptKey(r.timestamp));
 
   const latestId = attemptIds[attemptIds.length - 1];
   const latest = byAttempt[latestId];
-  const correctItems = latest.filter(r => r.correct);
+  const correctItems = latest.filter((r) => r.correct);
+
   const currentSbgLevel = correctItems.length
     ? (
-        correctItems.reduce((sum, r) => sum + (r.sbg || 0), 0) /
+        correctItems.reduce((sum, r) => sum + r.sbg, 0) /
         correctItems.length
       ).toFixed(2)
     : "0.0";
@@ -539,28 +679,29 @@ const attemptId = getAttemptKey(getAttemptKey(r.timestamp));
     <p>Current SBG level: <strong>${currentSbgLevel}</strong></p>
   `;
 
-  attemptSelect.innerHTML = '<option value="">Select an attempt</option>';
-attemptIds.forEach(id => {
-  const date = new Date(Number(id));
-  const label = date.toLocaleString();    const opt = document.createElement("option");
+  attemptSelect.innerHTML = `<option value="">Select an attempt</option>`;
+  attemptIds.forEach((id) => {
+    const date = new Date(Number(id));
+    const label = date.toLocaleString();
+    const opt = document.createElement("option");
     opt.value = id;
     opt.textContent = label;
     attemptSelect.appendChild(opt);
   });
-
-  attemptSelect._studentName = studentName;
+  attemptSelect.studentName = studentName;
 }
 
 function renderStudentAttemptItems(studentName, attemptId) {
   const records = allRecords.filter(
-    r =>
+    (r) =>
       r.teacher === currentTeacher &&
       r.studentName === studentName &&
-getAttemptKey(getAttemptKey(r.timestamp)) === Number(attemptId)
+      getAttemptKey(r.timestamp) === Number(attemptId)
   );
 
   const strip = document.getElementById("student-item-strip");
   if (!strip) return;
+
   strip.innerHTML = "";
 
   if (!records.length) {
@@ -571,7 +712,7 @@ getAttemptKey(getAttemptKey(r.timestamp)) === Number(attemptId)
   const bySbg = {};
   records
     .sort((a, b) => a.sbg - b.sbg || a.questionId - b.questionId)
-    .forEach(r => {
+    .forEach((r) => {
       const key = r.sbg.toFixed(1);
       if (!bySbg[key]) bySbg[key] = [];
       bySbg[key].push(r);
@@ -579,12 +720,11 @@ getAttemptKey(getAttemptKey(r.timestamp)) === Number(attemptId)
 
   Object.keys(bySbg)
     .sort((a, b) => parseFloat(a) - parseFloat(b))
-    .forEach(levelKey => {
+    .forEach((levelKey) => {
       const group = bySbg[levelKey];
 
       const card = document.createElement("div");
-      card.className =
-        "sbg-strip-card " + sbgStripClass(parseFloat(levelKey));
+      card.className = `sbg-strip-card ${sbgStripClass(parseFloat(levelKey))}`;
 
       const header = document.createElement("div");
       header.className = "sbg-strip-header";
@@ -594,7 +734,7 @@ getAttemptKey(getAttemptKey(r.timestamp)) === Number(attemptId)
       const row = document.createElement("div");
       row.className = "sbg-strip-items";
 
-      group.forEach(r => {
+      group.forEach((r) => {
         const idxSpan = document.createElement("span");
         idxSpan.className = "index";
         idxSpan.textContent = r.questionId;
@@ -622,128 +762,19 @@ function sbgStripClass(level) {
 
 function computeStudentCurrentSbg(recordsForStudent) {
   const byAttempt = {};
-  recordsForStudent.forEach(r => {
-    const attemptId = getAttemptKey(getAttemptKey(r.timestamp));
+  recordsForStudent.forEach((r) => {
+    const attemptId = getAttemptKey(r.timestamp);
     if (!byAttempt[attemptId]) byAttempt[attemptId] = [];
     byAttempt[attemptId].push(r);
   });
+
   const attemptIds = Object.keys(byAttempt).sort();
   const latest = byAttempt[attemptIds[attemptIds.length - 1]];
+  const correctItems = latest.filter((r) => r.correct);
 
-  const correctItems = latest.filter(r => r.correct);
   if (!correctItems.length) return 0;
 
   const avgSbg =
-    correctItems.reduce((sum, r) => sum + (r.sbg || 0), 0) /
-    correctItems.length;
-
+    correctItems.reduce((sum, r) => sum + r.sbg, 0) / correctItems.length;
   return Number(avgSbg.toFixed(1));
-}
-
-// ---------------- FLIPCARD / PER-ITEM ACCURACY ----------------
-
-const ITEM_SCREENSHOTS = {
-  1: "items-images/1.png",
-  2: "items-images/2.png",
-  3: "items-images/3.png",
-  4: "items-images/4.png",
-  5: "items-images/5.png",
-  6: "items-images/6.png",
-  7: "items-images/7.png",
-  8: "items-images/8.png",
-  9: "items-images/9.png",
-  10: "items-images/10.png",
-  11: "items-images/11.png",
-  12: "items-images/12.png",
-  13: "items-images/13.png",
-  14: "items-images/14.png",
-  15: "items-images/15.png",
-  16: "items-images/16.png",
-  17: "items-images/17.png",
-  18: "items-images/18.png",
-  19: "items-images/19.png",
-  20: "items-images/20.png",
-  21: "items-images/21.png",
-  22: "items-images/22.png",
-  23: "items-images/23.png",
-  24: "items-images/24.png",
-  25: "items-images/25.png",
-  26: "items-images/26.png",
-  27: "items-images/27.png",
-  28: "items-images/28.png",
-  29: "items-images/29.png",
-  30: "items-images/30.png",
-  0: "items-images/0.png"
-};
-
-let currentStudentItems = [];
-let currentItemIndex = 0;
-
-function updateItemFlipcard() {
-  const imgEl = document.getElementById("item-screenshot");
-  const zoomPopupImg = document.querySelector(".flipcard-zoom-popup img");
-  const percentEl = document.getElementById("accuracy-percent");
-  const circleEl = document.getElementById("accuracy-circle");
-  if (!imgEl || !percentEl || !circleEl) return;
-
-  if (!currentStudentItems.length) {
-    const placeholderSrc = ITEM_SCREENSHOTS[0];
-
-    imgEl.src = placeholderSrc;
-    imgEl.alt = "Select a student to view item performance.";
-    if (zoomPopupImg) {
-      zoomPopupImg.src = placeholderSrc;
-      zoomPopupImg.alt =
-        "Select a student to view item performance.";
-    }
-    percentEl.textContent = "--%";
-    circleEl.style.borderColor = "#ccc";
-    percentEl.style.color = "#ccc";
-    return;
-  }
-
-  const { questionId, percent, sbg } = currentStudentItems[currentItemIndex];
-  const src = ITEM_SCREENSHOTS[questionId] || "";
-  imgEl.src = src;
-  imgEl.alt = `Question ${questionId} (SBG ${sbg})`;
-  if (zoomPopupImg) {
-    zoomPopupImg.src = src;
-    zoomPopupImg.alt = `Zoomed question ${questionId} (SBG ${sbg})`;
-  }
-
-  percentEl.textContent = `${percent}%`;
-
-  let color = "#c51d34";
-  if (percent >= 90) color = "#0067A5";
-  else if (percent >= 80) color = "#00A86B";
-  else if (percent >= 60) color = "#FFBF00";
-
-  circleEl.style.borderColor = color;
-  percentEl.style.color = color;
-}
-
-function computeStudentItemAccuracy(studentName) {
-  const records = allRecords.filter(
-    r => r.teacher === currentTeacher && r.studentName === studentName
-  );
-  const byQuestion = {};
-  records.forEach(r => {
-    const qid = r.questionId;
-    if (!byQuestion[qid]) byQuestion[qid] = [];
-    byQuestion[qid].push(r);
-  });
-
-  currentStudentItems = Object.keys(byQuestion)
-    .sort((a, b) => Number(a) - Number(b))
-    .map(qid => {
-      const group = byQuestion[qid];
-      const correct = group.filter(r => r.correct).length;
-      const total = group.length || 1;
-      const percent = Math.round((correct / total) * 100);
-      const sbg = group[0].sbg;
-      return { questionId: Number(qid), sbg, percent };
-    });
-
-  currentItemIndex = 0;
-  updateItemFlipcard();
 }
