@@ -71,7 +71,6 @@ function saveLocalAttempt(record) {
 // ----- SUPABASE SAVE (added) -----
 async function saveAttemptsToSupabase(records) {
   if (typeof supabase === "undefined") {
-    // Supabase not configured; fail silently so practice still works
     return;
   }
   const { error } = await supabase
