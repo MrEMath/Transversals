@@ -624,4 +624,1043 @@ function initNavigator() {
 }
 
 function renderQuestion() {
-  const q = q
+  const q = questions[currentIndex];
+  problemNumber.textContent = `${currentIndex + 1}.`;
+  problemText.textContent = q.text;
+
+  if (q.image) {
+    problemImage.style.display = "block";
+    problemImage.src = q.image;
+    problemImage.alt = `Transversal problem ${currentIndex + 1}`;
+  } else {
+    problemImage.style.display = "none";
+  }
+
+  choicesList.innerHTML = "";
+
+  const stored = studentAnswers[currentIndex];
+
+  if (q.type === "matrix") {
+    const table = document.createElement("table");
+    table.classList.add("tf-matrix");
+
+    const thead = document.createElement("thead");
+    thead.innerHTML = `<tr><th>Statement</th><th>True</th><th>False</th></tr>`;
+    table.appendChild(thead);
+
+    const tbody = document.createElement("tbody");
+
+    q.statements.forEach((stmt) => {
+      const tr = document.createElement("tr");
+
+      const tdText = document.createElement("td");
+      tdText.textContent = stmt.text;
+
+      const tdTrue = document.createElement("td");
+      const trueInput = document.createElement("input");
+      trueInput.type = "radio";
+      trueInput.name = stmt.id; // group per row
+      trueInput.value = "T";
+      if (stored && stored[stmt.id] === "T") trueInput.checked = true;
+      tdTrue.appendChild(trueInput);
+
+      const tdFalse = document.createElement("td");
+      const falseInput = document.createElement("input");
+      falseInput.type = "radio";
+      falseInput.name = stmt.id;
+      falseInput.value = "F";
+      if (stored && stored[stmt.id] === "F") falseInput.checked = true;
+      tdFalse.appendChild(falseInput);
+
+      tr.appendChild(tdText);
+      tr.appendChild(tdTrue);
+      tr.appendChild(tdFalse);
+
+      tbody.appendChild(tr);
+    });
+
+    table.appendChild(tbody);
+    choicesList.appendChild(table);
+  } else if (q.type === "fill") {
+    q.blanks.forEach((blank) => {
+      const li = document.createElement("li");
+      const label = document.createElement("label");
+      label.textContent = blank.label;
+      label.setAttribute("for", `blank-${blank.id}`);
+
+      const input = document.createElement("input");
+      input.type = "text";
+      input.id = `blank-${blank.id}`;
+      input.name = blank.id;
+      input.size = 4;
+
+      if (stored && stored[blank.id] != null) {
+        input.value = stored[blank.id];
+      }
+
+      li.appendChild(label);
+      li.appendChild(input);
+      choicesList.appendChild(li);
+    });
+  } else if (q.type === "multi") {
+    q.options.forEach((opt) => {
+      const li = document.createElement("li");
+      const input = document.createElement("input");
+      input.type = "checkbox";
+      input.id = `multi-${q.id}-${opt.id}`;
+      input.name = `multi-${q.id}`;
+      input.value = opt.id;
+
+      if (stored && stored[opt.id]) {
+        input.checked = true;
+      }
+
+      const label = document.createElement("label");
+      label.setAttribute("for", input.id);
+      label.textContent = opt.text;
+
+      li.appendChild(input);
+      li.appendChild(label);
+      choicesList.appendChild(li);
+    });
+  } else {
+    const labels = ["a", "b", "c", "d"];
+    q.choices.forEach((choiceText, i) => {
+      const li = document.createElement("li");
+      const input = document.createElement("input");
+      input.type = "radio";
+      input.name = "problem";
+      input.id = `problem${q.id}-${labels[i]}`;
+      input.value = labels[i];
+
+      if (studentAnswers[currentIndex] === labels[i]) {
+        input.checked = true;
+      }
+
+      const label = document.createElement("label");
+      label.setAttribute("for", input.id);
+      label.textContent = choiceText;
+
+      li.appendChild(input);
+      li.appendChild(label);
+      choicesList.appendChild(li);
+    });
+  }
+
+  feedback.textContent = "";
+  feedback.className = "";
+  updateProgress();
+  highlightNavigator();
+  updateButtons();
+}
+
+function getSelectedAnswer() {
+  const q = questions[currentIndex];
+
+  if (q.type === "matrix") {
+    const result = {};
+    q.statements.forEach((stmt) => {
+      const selected = document.querySelector(`input[name="${stmt.id}"]:checked`);
+      result[stmt.id] = selected ? selected.value : null;
+    });
+    return result;
+  } else if (q.type === "fill") {
+    const result = {};
+    q.blanks.forEach((blank) => {
+      const input = document.getElementById(`blank-${blank.id}`);
+      result[blank.id] = input ? input.value.trim() : "";
+    });
+    return result;
+  } else if (q.type === "multi") {
+    const result = {};
+    q.options.forEach((opt) => {
+      const input = document.getElementById(`multi-${q.id}-${opt.id}`);
+      result[opt.id] = input ? input.checked : false;
+    });
+    return result;
+  } else {
+    const radios = document.querySelectorAll('input[name="problem"]');
+    for (const r of radios) {
+      if (r.checked) return r.value;
+    }
+    return null;
+  }
+}
+
+function saveCurrentAnswer() {
+  const q = questions[currentIndex];
+  const ans = getSelectedAnswer();
+
+  if (q.type === "fill") {
+    const values = Object.values(ans);
+    const anyFilled = values.some((v) => v && v.trim() !== "");
+    if (!anyFilled) return;
+  } else if (q.type === "matrix") {
+    const values = Object.values(ans);
+    const anyChosen = values.some((v) => v === "T" || v === "F");
+    if (!anyChosen) return;
+  } else if (q.type === "multi") {
+    const anyChecked = Object.values(ans).some((v) => v);
+    if (!anyChecked) return;
+  } else if (!ans) {
+    return;
+  }
+
+  studentAnswers[currentIndex] = ans;
+}
+
+function updateProgress() {
+  const answered = studentAnswers.filter((ans) => ans !== null).length;
+  const total = questions.length;
+  const percent = (answered / total) * 100;
+  const progressTextEl = document.getElementById("progress-text");
+  if (progressTextEl) {
+    progressTextEl.textContent = `${answered}/${total} Complete`;
+  }
+  progressBar.style.width = `${percent}%`;
+}
+
+function highlightNavigator() {
+  const buttons = document.querySelectorAll(".item-button");
+  buttons.forEach((btn, index) => {
+    btn.classList.toggle("current", index === currentIndex);
+    btn.classList.toggle("answered", studentAnswers[index] !== null);
+  });
+}
+
+function updateButtons() {
+  if (currentIndex === questions.length - 1) {
+    nextBtn.disabled = true;
+  } else {
+    nextBtn.disabled = false;
+  }
+}
+
+// ----- AUTO-CHECK LOGIC -----
+function autoCheckQuestion(index) {
+  const q = questions[index];
+  const state = questionStates[index];
+  const ans = studentAnswers[index];
+
+  if (ans === null) {
+    state.answered = false;
+    state.correct = false;
+    return;
+  }
+
+  let isCorrect = false;
+
+  if (!q.type) {
+    // regular multiple choice
+    isCorrect = ans === q.correct;
+  } else if (q.type === "matrix") {
+    const selected = ans;
+    let allCorrect = true;
+    q.statements.forEach((stmt) => {
+      if (selected[stmt.id] !== stmt.correct) {
+        allCorrect = false;
+      }
+    });
+    isCorrect = allCorrect;
+  } else if (q.type === "fill") {
+    const answers = ans;
+    let allCorrect = true;
+    q.blanks.forEach((blank) => {
+      const userVal = (answers[blank.id] || "").replace(/\s/g, "");
+      const correctVal = (blank.correct || "").replace(/\s/g, "");
+      if (userVal !== correctVal) {
+        allCorrect = false;
+      }
+    });
+    isCorrect = allCorrect;
+  } else if (q.type === "multi") {
+    const answers = ans;
+    let allCorrect = true;
+    q.options.forEach((opt) => {
+      const shouldBeChecked = !!opt.correct;
+      const isChecked = !!answers[opt.id];
+      if (shouldBeChecked !== isChecked) {
+        allCorrect = false;
+      }
+    });
+    isCorrect = allCorrect;
+  }
+
+  state.answered = true;
+  state.correct = isCorrect;
+  state.attempts = state.attempts ? state.attempts + 1 : 1;
+}
+
+// ----- BUTTON HANDLERS -----
+function lockCurrentQuestionInputs() {
+  const q = questions[currentIndex];
+  if (q.type === "matrix") {
+    q.statements.forEach((stmt) => {
+      const radios = document.querySelectorAll(`input[name="${stmt.id}"]`);
+      radios.forEach((r) => (r.disabled = true));
+    });
+  } else if (q.type === "fill") {
+    q.blanks.forEach((blank) => {
+      const input = document.getElementById(`blank-${blank.id}`);
+      if (input) input.disabled = true;
+    });
+  } else if (q.type === "multi") {
+    q.options.forEach((opt) => {
+      const input = document.getElementById(`multi-${q.id}-${opt.id}`);
+      if (input) input.disabled = true;
+    });
+  } else {
+    const radios = document.querySelectorAll('input[name="problem"]');
+    radios.forEach((r) => (r.disabled = true));
+  }
+}
+
+checkBtn.addEventListener("click", () => {
+  const q = questions[currentIndex];
+  const state = questionStates[currentIndex];
+
+  if (state.answered) {
+    feedback.textContent = "You have already checked this question.";
+    feedback.className = "feedback-message warning";
+    return;
+  }
+
+  const selected = getSelectedAnswer();
+
+  if (q.type === "matrix") {
+    const values = Object.values(selected);
+    const allBlank = values.length === 0 || values.every((v) => v == null);
+    const someBlank = values.some((v) => v == null);
+    if (allBlank) {
+      feedback.textContent = "Select True or False for at least one statement before checking.";
+      feedback.className = "feedback-message warning";
+      return;
+    }
+    studentAnswers[currentIndex] = selected;
+    if (someBlank) {
+      feedback.textContent = "Answer True/False for every statement.";
+      feedback.className = "feedback-message warning";
+      return;
+    }
+    let allCorrect = true;
+    q.statements.forEach((stmt) => {
+      if (selected[stmt.id] !== stmt.correct) {
+        allCorrect = false;
+      }
+    });
+    state.answered = true;
+    state.correct = allCorrect;
+    state.attempts = 1;
+    feedback.textContent = allCorrect ? "Correct!" : "Not quite!";
+    feedback.className = allCorrect
+      ? "feedback-message correct"
+      : "feedback-message incorrect";
+  } else if (q.type === "fill") {
+    const answers = selected;
+    const values = Object.values(answers);
+    const allBlank = values.every((v) => !v);
+    const someBlank = values.some((v) => !v);
+    if (allBlank) {
+      feedback.textContent = "Fill in at least one angle measure before checking.";
+      feedback.className = "feedback-message warning";
+      return;
+    }
+    studentAnswers[currentIndex] = answers;
+    if (someBlank) {
+      feedback.textContent = "Fill in every blank to get full feedback.";
+      feedback.className = "feedback-message warning";
+      return;
+    }
+    let allCorrect = true;
+    q.blanks.forEach((blank) => {
+      const userVal = (answers[blank.id] || "").replace(/\s/g, "");
+      const correctVal = (blank.correct || "").replace(/\s/g, "");
+      if (userVal !== correctVal) {
+        allCorrect = false;
+      }
+    });
+    state.answered = true;
+    state.correct = allCorrect;
+    state.attempts = 1;
+    feedback.textContent = allCorrect ? "Correct!" : "Not quite!";
+    feedback.className = allCorrect
+      ? "feedback-message correct"
+      : "feedback-message incorrect";
+  } else if (q.type === "multi") {
+    const answers = selected;
+    const anyChecked = Object.values(answers).some((v) => v);
+    if (!anyChecked) {
+      feedback.textContent = "Select at least one statement before checking.";
+      feedback.className = "feedback-message warning";
+      return;
+    }
+    studentAnswers[currentIndex] = answers;
+    let allCorrect = true;
+    q.options.forEach((opt) => {
+      const shouldBeChecked = !!opt.correct;
+      const isChecked = !!answers[opt.id];
+      if (shouldBeChecked !== isChecked) {
+        allCorrect = false;
+      }
+    });
+    state.answered = true;
+    state.correct = allCorrect;
+    state.attempts = 1;
+    feedback.textContent = allCorrect ? "Correct!" : "Not quite!";
+    feedback.className = allCorrect
+      ? "feedback-message correct"
+      : "feedback-message incorrect";
+  } else {
+    const selectedMC = selected;
+    if (!selectedMC) {
+      feedback.textContent = "Select an answer before checking.";
+      feedback.className = "feedback-message warning";
+      return;
+    }
+    studentAnswers[currentIndex] = selectedMC;
+    const isCorrect = selectedMC === q.correct;
+    state.answered = true;
+    state.correct = isCorrect;
+    state.attempts = 1;
+    feedback.textContent = isCorrect ? "Correct!" : "Not quite.";
+    feedback.className = isCorrect
+      ? "feedback-message correct"
+      : "feedback-message incorrect";
+  }
+
+  lockCurrentQuestionInputs();
+  updateProgress();
+  highlightNavigator();
+});
+
+hintBtn.addEventListener("click", () => {
+  const hintText = questions[currentIndex].hint || "Think carefully about the diagram.";
+  feedback.textContent = hintText;
+  feedback.className = "feedback-message hint";
+});
+
+skipBtn.addEventListener("click", () => {
+  if (currentIndex < questions.length - 1) {
+    currentIndex++;
+    renderQuestion();
+  }
+});
+
+nextBtn.addEventListener("click", () => {
+  saveCurrentAnswer();
+  if (currentIndex < questions.length - 1) {
+    currentIndex++;
+    renderQuestion();
+  }
+});
+
+submitPracticeBtn.addEventListener("click", () => {
+  saveCurrentAnswer();
+
+  questionStates.forEach((state, index) => {
+    if (!state.answered) {
+      autoCheckQuestion(index);
+      if (!state.answered) {
+        studentAnswers[index] = null;
+        state.answered = true;
+        state.correct = false;
+        state.attempts = 1;
+      }
+    }
+  });
+
+  updateProgress();
+
+  const total = questions.length;
+  const correctCount = questionStates.filter((s) => s.correct).length;
+  const percentCorrect = Math.round((correctCount / total) * 100);
+
+  let html = "";
+  html += `<h2>Practice Results</h2>`;
+  html += `<p>You answered ${correctCount} out of ${total} correctly (${percentCorrect}%).</p>`;
+  html += `<h3>Item Analysis</h3>`;
+  html += `<table><thead><tr><th>Q</th><th>SBG</th><th>Correct?</th></tr></thead><tbody>`;
+  questionStates.forEach((s, index) => {
+    const q = questions[index];
+    html += `<tr><td>${index + 1}</td><td>${q.sbg}</td><td>${
+      s.correct ? "✔" : "✘"
+    }</td></tr>`;
+  });
+  html += `</tbody></table>`;
+
+  summaryScreen.innerHTML = html;
+  summaryScreen.style.display = "block";
+
+  finishPractice();
+});
+
+// ----- FINISH PRACTICE (NOW POSTS TO BACKEND) -----
+function finishPractice() {
+  const rawStudent = localStorage.getItem("reflectionCurrentStudent");
+  const currentStudent = rawStudent ? JSON.parse(rawStudent) : null;
+  if (!currentStudent) return;
+
+  const records = questions.map((q, index) => ({
+    teacher: currentStudent.teacher,
+    studentName: currentStudent.student,
+    questionId: q.id,
+    sbg: q.sbg,
+    answer: studentAnswers[index],
+    attempts: questionStates[index].attempts,
+    correct: questionStates[index].correct,
+    timestamp: new Date().toISOString()
+  }));
+
+  // optional local backup
+  records.forEach(saveLocalAttempt);
+
+  // MAIN: send to backend
+  sendAttemptsToServer(records);
+}
+
+// ----- LOGIN BUTTON -----
+loginButton.addEventListener("click", () => {
+  const teacher = teacherSelectEl.value;
+  const student = studentSelectEl.value;
+
+  if (!teacher || !student) {
+    loginError.textContent = "Please select your teacher and your name.";
+    return;
+  }
+
+  loginError.textContent = "";
+
+  const currentStudent = { teacher, student };
+  localStorage.setItem("reflectionCurrentStudent", JSON.stringify(currentStudent));
+
+  loginScreen.style.display = "none";
+  practiceScreen.style.display = "block";
+
+  initNavigator();
+  renderQuestion();
+  updateProgress();
+});
+
+// ----- INITIALIZE -----
+document.addEventListener("DOMContentLoaded", () => {
+  loadLocalData(); // optional local use
+  populateTeachers();
+  restoreLoginIfPresent();
+});
+adio";
+    falseInput.name = stmt.id;
+    falseInput.value = "F";
+    if (stored[stmt.id] === "F") falseInput.checked = true;
+    tdFalse.appendChild(falseInput);
+
+    tr.appendChild(tdText);
+    tr.appendChild(tdTrue);
+    tr.appendChild(tdFalse);
+    tbody.appendChild(tr);
+  });
+
+  table.appendChild(tbody);
+  choicesList.appendChild(table);
+
+} else if (q.type === "fill") {
+  // ----- FILL‑IN RENDERING -----
+  const stored = studentAnswers[currentIndex] || {}; // {A: "50", B: "130", ...}
+
+  q.blanks.forEach(blank => {
+    const li = document.createElement("li");
+
+    const label = document.createElement("label");
+    label.textContent = blank.label + " ";
+    label.setAttribute("for", `blank-${blank.id}`);
+
+    const input = document.createElement("input");
+    input.type = "text";
+    input.id = `blank-${blank.id}`;
+    input.name = blank.id;
+    input.size = 4;
+    if (stored[blank.id]) {
+      input.value = stored[blank.id];
+    }
+
+    li.appendChild(label);
+    li.appendChild(input);
+    choicesList.appendChild(li);
+  });
+
+} else if (q.type === "multi") {
+  // ----- MULTI-SELECT RENDERING -----
+  const stored = studentAnswers[currentIndex] || {}; // e.g. {A: true, C: true}
+
+  q.options.forEach(opt => {
+    const li = document.createElement("li");
+
+    const input = document.createElement("input");
+    input.type = "checkbox";
+    input.id = `multi-${q.id}-${opt.id}`;
+    input.name = `multi-${q.id}`;
+    input.value = opt.id;
+    if (stored[opt.id]) {
+      input.checked = true;
+    }
+
+    const label = document.createElement("label");
+    label.setAttribute("for", input.id);
+    label.textContent = " " + opt.text;
+
+    li.appendChild(input);
+    li.appendChild(label);
+    choicesList.appendChild(li);
+  });
+
+} else {
+  // ----- EXISTING MULTIPLE-CHOICE RENDERING -----
+  const labels = ["a", "b", "c", "d"];
+  q.choices.forEach((choiceText, i) => {
+    const li = document.createElement("li");
+
+    const input = document.createElement("input");
+    input.type = "radio";
+    input.name = "problem";
+    input.id = `problem${q.id}-${labels[i]}`;
+    input.value = labels[i];
+
+    if (studentAnswers[currentIndex] === labels[i]) {
+      input.checked = true;
+    }
+
+    const label = document.createElement("label");
+    label.setAttribute("for", input.id);
+    label.textContent = " " + choiceText;
+
+    li.appendChild(input);
+    li.appendChild(label);
+    choicesList.appendChild(li);
+  });
+}
+
+feedback.textContent = "";
+updateProgress();
+highlightNavigator();
+updateButtons();
+
+}
+
+
+function getSelectedAnswer() {
+  const q = questions[currentIndex];
+
+  if (q.type === "matrix") {
+    const result = {};
+    q.statements.forEach(stmt => {
+      const selected = document.querySelector(`input[name="${stmt.id}"]:checked`);
+      result[stmt.id] = selected ? selected.value : null;
+    });
+    return result;     // always returns an object for matrix
+  } else if (q.type === "fill") {
+    const result = {};
+    q.blanks.forEach(blank => {
+      const input = document.getElementById(`blank-${blank.id}`);
+      result[blank.id] = input ? input.value.trim() : "";
+    });
+    return result;  // object of id -> text 
+  } else if (q.type === "multi") {
+    const result = {};
+    q.options.forEach(opt => {
+      const input = document.getElementById(`multi-${q.id}-${opt.id}`);
+      result[opt.id] = input ? input.checked : false;
+    });
+    return result;  // e.g. {A: true, B: false, C: true, D: false}   
+  } else {
+    const radios = document.querySelectorAll('input[name="problem"]');
+    for (const r of radios) {
+      if (r.checked) return r.value;
+    }
+    return null;
+  }
+}
+
+
+function saveCurrentAnswer() {
+  const q = questions[currentIndex];
+  const ans = getSelectedAnswer();
+
+  if (q.type === "fill") {
+    const values = Object.values(ans || {});
+    const anyFilled = values.some(v => v && v.trim() !== "");
+    if (!anyFilled) return;                 // do NOT mark answered
+  } else if (q.type === "matrix") {
+    const values = Object.values(ans || {});
+    const anyChosen = values.some(v => v === "T" || v === "F");
+    if (!anyChosen) return;
+  } else if (q.type === "multi") {
+    const anyChecked = Object.values(ans || {}).some(v => v);
+    if (!anyChecked) return;
+  } else {
+    if (!ans) return;                       // no radio selected
+  }
+
+  studentAnswers[currentIndex] = ans;
+}
+
+function updateProgress() {
+  // count questions where the student has recorded *any* answer
+  const answered = studentAnswers.filter(ans => ans !== null).length;
+  const total = questions.length;
+  const percent = (answered / total) * 100;
+
+  // if you have a progress-text element, update it too
+  const progressTextEl = document.getElementById("progress-text");
+  if (progressTextEl) {
+    progressTextEl.textContent = `${answered}/${total} Complete`;
+  }
+
+  progressBar.style.width = `${percent}%`;
+}
+
+function highlightNavigator() {
+  const buttons = document.querySelectorAll(".item-button");
+  buttons.forEach((btn, index) => {
+    btn.classList.toggle("current", index === currentIndex);
+    btn.classList.toggle("answered", studentAnswers[index] !== null);
+  });
+}
+
+function updateButtons() {
+  // Disable Next on last question
+  if (currentIndex === questions.length - 1) {
+    nextBtn.disabled = true;
+  } else {
+    nextBtn.disabled = false;
+  }
+}
+function autoCheckQuestion(index) {
+  const q = questions[index];
+  const state = questionStates[index];
+  const ans = studentAnswers[index];
+
+  // If the student never selected anything for this question, leave it unanswered
+  if (ans === null) {
+    state.answered = false;
+    state.correct = false;
+    return;
+  }
+
+  let isCorrect = false;
+
+  if (!q.type) {
+    // regular multiple choice
+    isCorrect = ans === q.correct;
+  } else if (q.type === "matrix") {
+    const selected = ans || {};
+    let allCorrect = true;
+    q.statements.forEach(stmt => {
+      if (selected[stmt.id] !== stmt.correct) {
+        allCorrect = false;
+      }
+    });
+    isCorrect = allCorrect;
+  } else if (q.type === "fill") {
+    const answers = ans || {};
+    let allCorrect = true;
+    q.blanks.forEach(blank => {
+      const userVal = (answers[blank.id] || "").replace(/\s+/g, "");
+      const correctVal = blank.correct.replace(/\s+/g, "");
+      if (userVal !== correctVal) {
+        allCorrect = false;
+      }
+    });
+    isCorrect = allCorrect;
+  } else if (q.type === "multi") {
+    const answers = ans || {};
+    let allCorrect = true;
+    q.options.forEach(opt => {
+      const shouldBeChecked = !!opt.correct;
+      const isChecked = !!answers[opt.id];
+      if (shouldBeChecked !== isChecked) {
+        allCorrect = false;
+      }
+    });
+    isCorrect = allCorrect;
+  }
+
+  state.answered = true;
+  state.correct = isCorrect;
+  state.attempts = state.attempts ? state.attempts + 1 : 1;
+}
+
+// ----- BUTTON HANDLERS -----
+checkBtn.addEventListener("click", () => {
+  const q = questions[currentIndex];
+  const state = questionStates[currentIndex];
+
+  function lockCurrentQuestionInputs() {
+  const q = questions[currentIndex];
+
+  if (q.type === "matrix") {
+    q.statements.forEach(stmt => {
+      const radios = document.querySelectorAll(`input[name="${stmt.id}"]`);
+      radios.forEach(r => r.disabled = true);
+    });
+  } else if (q.type === "fill") {
+    q.blanks.forEach(blank => {
+      const input = document.getElementById(`blank-${blank.id}`);
+      if (input) input.disabled = true;
+    });
+  } else if (q.type === "multi") {
+    q.options.forEach(opt => {
+      const input = document.getElementById(`multi-${q.id}-${opt.id}`);
+      if (input) input.disabled = true;
+    });
+  } else {
+    // regular multiple choice
+    const radios = document.querySelectorAll('input[name="problem"]');
+    radios.forEach(r => r.disabled = true);
+  }
+}
+
+  // block second attempt
+  if (state.answered) {
+    feedback.textContent = "You have already checked this question.";
+    feedback.className = "feedback-message warning";
+    return;
+  }
+
+  const selected = getSelectedAnswer();
+
+  if (q.type === "matrix") {
+    const values = Object.values(selected || {});
+    const allBlank = values.length === 0 || values.every(v => v === null);
+    const someBlank = values.some(v => v === null);
+
+    if (allBlank) {
+      feedback.textContent = "Select True or False for at least one statement before checking.";
+      feedback.className = "feedback-message warning";
+      return;
+    }
+
+    studentAnswers[currentIndex] = selected;
+
+    if (someBlank) {
+      feedback.textContent = "Answer True/False for every statement.";
+      feedback.className = "feedback-message warning";
+    }
+
+    if (!someBlank) {
+      let allCorrect = true;
+      q.statements.forEach(stmt => {
+        if (selected[stmt.id] !== stmt.correct) {
+          allCorrect = false;
+        }
+      });
+
+      state.answered = true;
+      state.correct = allCorrect;
+      state.attempts = 1;
+
+      if (allCorrect) {
+        feedback.textContent = "Correct!";
+        feedback.className = "feedback-message correct";
+      } else {
+        feedback.textContent = "Not quite!";
+        feedback.className = "feedback-message incorrect";
+      }
+    }
+
+  } else if (q.type === "fill") {
+    const answers = selected || {};
+    const values = Object.values(answers);
+    const allBlank = values.every(v => v === "");
+    const someBlank = values.some(v => v === "");
+
+    if (allBlank) {
+      feedback.textContent = "Fill in at least one angle measure before checking.";
+      feedback.className = "feedback-message warning";
+      return;
+    }
+
+    studentAnswers[currentIndex] = answers;
+
+    if (someBlank) {
+      feedback.textContent = "Fill in every blank to get full feedback.";
+      feedback.className = "feedback-message warning";
+    }
+
+    if (!someBlank) {
+      let allCorrect = true;
+
+      q.blanks.forEach(blank => {
+        const userVal = (answers[blank.id] || "").replace(/\s+/g, "");
+        const correctVal = blank.correct.replace(/\s+/g, "");
+        if (userVal !== correctVal) {
+          allCorrect = false;
+        }
+      });
+
+      state.answered = true;
+      state.correct = allCorrect;
+      state.attempts = 1;
+
+      if (allCorrect) {
+        feedback.textContent = "Correct!";
+        feedback.className = "feedback-message correct";
+      } else {
+        feedback.textContent = "Not quite!";
+        feedback.className = "feedback-message incorrect";
+      }
+    }
+
+  } else if (q.type === "multi") {
+    const answers = selected || {};
+    const anyChecked = Object.values(answers).some(v => v);
+
+    if (!anyChecked) {
+      feedback.textContent = "Select at least one statement before checking.";
+      feedback.className = "feedback-message warning";
+      return;
+    }
+
+    studentAnswers[currentIndex] = answers;
+
+    let allCorrect = true;
+    q.options.forEach(opt => {
+      const shouldBeChecked = !!opt.correct;
+      const isChecked = !!answers[opt.id];
+      if (shouldBeChecked !== isChecked) {
+        allCorrect = false;
+      }
+    });
+
+    state.answered = true;
+    state.correct = allCorrect;
+    state.attempts = 1;
+
+    if (allCorrect) {
+      feedback.textContent = "Correct!";
+      feedback.className = "feedback-message correct";
+    } else {
+      feedback.textContent = "Not quite!";
+      feedback.className = "feedback-message incorrect";
+    }
+
+  } else {
+    // multiple choice
+    if (!selected) {
+      feedback.textContent = "Select an answer before checking.";
+      feedback.className = "feedback-message warning";
+      return;
+    }
+
+    studentAnswers[currentIndex] = selected;
+
+    const isCorrect = selected === q.correct;
+
+    state.answered = true;
+    state.correct = isCorrect;
+    state.attempts = 1;
+
+    if (isCorrect) {
+      feedback.textContent = "Correct!";
+      feedback.className = "feedback-message correct";
+    } else {
+      feedback.textContent = "Not quite.";
+      feedback.className = "feedback-message incorrect";
+    }
+  }
+  lockCurrentQuestionInputs();
+  updateProgress();
+  highlightNavigator();
+});
+
+
+
+hintBtn.addEventListener("click", () => {
+  const hintText = questions[currentIndex].hint || "Think about the position of the angles.";
+  feedback.textContent = hintText;
+  feedback.className = "feedback-message hint";
+});
+
+skipBtn.addEventListener("click", () => {
+  // Do not save answer; just move forward if possible
+  if (currentIndex < questions.length - 1) {
+    currentIndex++;
+    renderQuestion();
+  }
+});
+
+nextBtn.addEventListener("click", () => {
+  saveCurrentAnswer();
+  if (currentIndex < questions.length - 1) {
+    currentIndex++;
+    renderQuestion();
+  }
+});
+submitPracticeBtn.addEventListener("click", () => {
+  // First, save the current question's answer
+  saveCurrentAnswer();
+
+  // Auto-check every question that hasn't been checked yet
+  questionStates.forEach((state, index) => {
+    if (!state.answered) {
+      autoCheckQuestion(index);
+    }
+    if (!state.answered && studentAnswers[index] === null) {
+      // truly blank: treat as skipped/incorrect
+      state.answered = true;
+      state.correct = false;
+      state.attempts = 1;
+    }
+  });
+
+  updateProgress();
+
+  const total = questions.length;
+  const correctCount = questionStates.filter(s => s.correct).length;
+  const percentCorrect = Math.round((correctCount / total) * 100);
+
+  let html = "";
+  html += `<h2>Practice Results</h2>`;
+  html += `<p>You answered ${correctCount} out of ${total} correctly (${percentCorrect}%).</p>`;
+
+  html += `
+    <h3>Item Analysis</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>Q#</th>
+          <th>SBG</th>
+          <th>Correct?</th>
+        </tr>
+      </thead>
+      <tbody>
+  `;
+
+  questionStates.forEach((s, index) => {
+    const q = questions[index];
+    html += `
+      <tr>
+        <td>${index + 1}</td>
+        <td>${q.sbg}</td>
+        <td>${s.correct ? "✔" : "✘"}</td>
+      </tr>
+    `;
+  });
+
+  html += `</tbody></table>`;
+  summaryScreen.innerHTML = html;
+  summaryScreen.style.display = "block";
+
+  // save for teacher dashboard
+  finishPractice();
+});
+
+
+
+// ----- INITIALIZE -----
+// ----- INITIALIZE -----
+document.addEventListener("DOMContentLoaded", () => {
+  loadLocalData();      // optional for teacher reports
+  populateTeachers();
+  restoreLoginIfPresent();  // auto-login if a student was saved earlier
+});
+
+
