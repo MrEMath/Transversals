@@ -345,6 +345,7 @@ function renderQuestion() {
 
     table.appendChild(tbody);
     choicesList.appendChild(table);
+
   } else if (q.type === "fill") {
     const storedObj = stored || {};
     q.blanks.forEach((blank) => {
@@ -367,6 +368,7 @@ function renderQuestion() {
       li.appendChild(input);
       choicesList.appendChild(li);
     });
+
   } else if (q.type === "multi") {
     const storedObj = stored || {};
     q.options.forEach((opt) => {
@@ -386,6 +388,7 @@ function renderQuestion() {
       li.appendChild(label);
       choicesList.appendChild(li);
     });
+
   } else {
     const labels = ["a", "b", "c", "d"];
     q.choices.forEach((choiceText, i) => {
