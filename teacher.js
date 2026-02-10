@@ -37,7 +37,7 @@ async function loadData() {
     answer: row.answer,
     attempts: row.attempts,
     correct: row.correct,
-    timestamp: row.timestamp
+    timestamp: row.created_at  // use created_at as the timestamp 
   }));
 }
 

@@ -643,7 +643,7 @@ async function saveCurrentQuestionToSupabase() {
     answer: studentAnswers[currentIndex],
     attempts: state.attempts,
     correct: !!state.correct,
-    timestamp: new Date().toISOString()
+    created_at: new Date().toISOString()
   };
 
   await saveAttemptsToSupabase([record]);
@@ -687,7 +687,7 @@ function finishPractice() {
     answer: studentAnswers[index],
     attempts: questionStates[index].attempts,
     correct: !!questionStates[index].correct,  // force boolean
-    timestamp: new Date().toISOString()
+    created_at: new Date().toISOString()
   }));
 
   // keep existing local behavior
