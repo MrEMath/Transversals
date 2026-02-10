@@ -9,6 +9,7 @@ const TEACHER_PASSWORDS = {
 
 let currentTeacher = null;
 let allRecords = [];
+let currentStudentName = null;
 
 // ---------------- STUDENT DATA REFRESH) ----------------
 async function resetStudentData(teacher, studentName) {
@@ -138,24 +139,26 @@ teacherLoginBtn.addEventListener("click", () => {
   );
 });
 
-  // Student dropdown change
-  studentSelect.addEventListener("change", () => {
-    const name = studentSelect.value;
-    studentSummaryEl.innerHTML = "";
-    attemptSelect.innerHTML = "";
+// Student dropdown change
+studentSelect.addEventListener("change", () => {
+  const name = studentSelect.value;
+  currentStudentName = name;  // <--- track selected student
 
-    const strip = document.getElementById("student-item-strip");
-    if (strip) strip.innerHTML = "";
+  studentSummaryEl.innerHTML = "";
+  attemptSelect.innerHTML = "";
 
-    if (!name) {
-      currentStudentItems = [];
-      updateItemFlipcard();
-      return;
-    }
+  const strip = document.getElementById("student-item-strip");
+  if (strip) strip.innerHTML = "";
 
-    renderStudentSummaryAndAttempts(name, studentSummaryEl, attemptSelect);
-    computeStudentItemAccuracy(name);
-  });
+  if (!name) {
+    currentStudentItems = [];
+    updateItemFlipcard();
+    return;
+  }
+
+  renderStudentSummaryAndAttempts(name, studentSummaryEl, attemptSelect);
+  computeStudentItemAccuracy(name);
+});
 
   // Attempt dropdown change
   attemptSelect.addEventListener("change", () => {
