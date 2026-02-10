@@ -107,6 +107,48 @@ const teacherNameEl = document.getElementById("teacher-name");
       resetStudentData(currentTeacher, currentStudentName);
     });
   }
+async function deleteAttempt(teacher, studentName, attemptIdMs) {
+  if (typeof window.supabaseClient === "undefined") return;
+
+  const confirmDelete = window.confirm(
+    `Delete this attempt for ${studentName}? This cannot be undone.`
+  );
+  if (!confirmDelete) return;
+
+  const { error } = await window.supabaseClient
+    .from("attempts")
+    .delete()
+    .eq("teacher", teacher)
+    .eq("student_name", studentName)
+    .gte("created_at", new Date(Number(attemptIdMs)).toISOString())
+    .lt(
+      "created_at",
+      new Date(Number(attemptIdMs) + 60 * 1000).toISOString()
+    );
+
+  if (error) {
+    console.error("Error deleting attempt", error);
+    alert("There was an error deleting this attempt. Please try again.");
+    return;
+  }
+
+  await loadData();
+  renderDashboard(
+    document.getElementById("overall-stats"),
+    document.querySelector("#item-analysis-table tbody"),
+    document.getElementById("student-select"),
+    document.getElementById("student-summary")
+  );
+
+  // Clear attempt strip and dropdown
+  const strip = document.getElementById("student-item-strip");
+  if (strip) strip.innerHTML = "";
+  const attemptSelect = document.getElementById("attempt-select");
+  if (attemptSelect) {
+    attemptSelect.value = "";
+    attemptSelect.innerHTML = `<option value="">Select an attempt</option>`;
+  }
+}
 
 // ---- TEACHER LOGIN WIRING ----
 teacherLoginBtn.addEventListener("click", () => {
@@ -322,6 +364,25 @@ if (refreshBtn) {
       );
     }
   });
+  // DELETE ATTEMPT BUTTON
+  if (deleteAttemptBtn) {
+    deleteAttemptBtn.addEventListener("click", () => {
+      const attemptId = attemptSelect.value;
+      const studentName = attemptSelect.studentName;
+
+      if (!currentTeacher || !studentName) {
+        alert("Select a student first.");
+        return;
+      }
+      if (!attemptId) {
+        alert("Select an attempt to delete.");
+        return;
+      }
+
+      deleteAttempt(currentTeacher, studentName, attemptId);
+    });
+  }
+
 }
 
 // ---------------- DASHBOARD ----------------
