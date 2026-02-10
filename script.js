@@ -137,27 +137,31 @@ function saveLocalAttempt(record) {
   localStorage.setItem("reflectionPracticeResults", JSON.stringify(all));
 }
 
-// ----- SUPABASE SAVE (added) -----
+// ----- SUPABASE SAVE updated -----
+// ----- SUPABASE SAVE updated -----
 async function saveAttemptsToSupabase(records) {
-  if (typeof window.supabaseClient === "undefined") {
-    return;
-  }
+  if (typeof window.supabaseClient === "undefined") return;
+
   const { error } = await window.supabaseClient
     .from("attempts")
-    .insert(
-      records.map((r) => ({
+    .upsert(
+      records.map(r => ({
         teacher: r.teacher,
-        student_name: r.studentName,
-        question_id: r.questionId,
+        student_name: r.studentName,   // JS field -> DB column
+        question_id: r.questionId,     // JS field -> DB column
         sbg: r.sbg,
         answer: r.answer,
         attempts: r.attempts,
         correct: r.correct,
         timestamp: r.timestamp
-      }))
+      })),
+      {
+        onConflict: "teacher,student_name,question_id"
+      }
     );
+
   if (error) {
-    console.error("Error inserting attempts into Supabase", error);
+    console.error("Error upserting attempts into Supabase", error);
   }
 }
 
@@ -308,20 +312,65 @@ const loginError = document.getElementById("login-error");
 const submitPracticeBtn = document.getElementById("submit-practice");
 const summaryScreen = document.getElementById("summary-screen");
 
+async function restoreStudentProgressFromSupabase(teacher, student) {
+  if (typeof window.supabaseClient === "undefined") return;
+
+  const { data, error } = await window.supabaseClient
+    .from("attempts")
+    .select("*")
+    .eq("teacher", teacher)
+    .eq("student_name", student);
+
+  if (error) {
+    console.error("Error loading attempts from Supabase", error);
+    return;
+  }
+
+  // reset
+  for (let i = 0; i < questions.length; i++) {
+    studentAnswers[i] = null;
+    questionStates[i] = { answered: false, correct: null, attempts: 0 };
+  }
+
+  // hydrate
+  data.forEach(r => {
+    const index = questions.findIndex(q => q.id === r.question_id);
+    if (index === -1) return;
+
+    studentAnswers[index] = r.answer;
+    questionStates[index] = {
+      answered: r.answer != null,
+      correct: !!r.correct,
+      attempts: r.attempts || 1
+    };
+  });
+
+  updateProgress();
+  highlightNavigator();
+}
+
 // LOGIN BUTTON
-loginButton.addEventListener("click", () => {
+loginButton.addEventListener("click", async () => {
   const teacher = teacherSelectEl.value;
   const student = studentSelectEl.value;
+
   if (!teacher || !student) {
     loginError.textContent = "Please select your teacher and your name.";
     return;
   }
+
   loginError.textContent = "";
   const currentStudent = { teacher, student };
   localStorage.setItem("reflectionCurrentStudent", JSON.stringify(currentStudent));
+
   loginScreen.style.display = "none";
   practiceScreen.style.display = "block";
+
   initNavigator();
+
+  // NEW: pull saved attempts for this student from Supabase
+  await restoreStudentProgressFromSupabase(teacher, student);
+
   renderQuestion();
   updateProgress();
 });
@@ -579,6 +628,28 @@ function saveCurrentAnswer() {
   studentAnswers[currentIndex] = ans;
 }
 
+async function saveCurrentQuestionToSupabase() {
+  const rawStudent = localStorage.getItem("reflectionCurrentStudent");
+  if (!rawStudent) return;
+
+  const { teacher, student } = JSON.parse(rawStudent);
+  const q = questions[currentIndex];
+  const state = questionStates[currentIndex];
+
+  const record = {
+    teacher,
+    studentName: student,
+    questionId: q.id,
+    sbg: q.sbg,
+    answer: studentAnswers[currentIndex],
+    attempts: state.attempts,
+    correct: !!state.correct,
+    timestamp: new Date().toISOString()
+  };
+
+  await saveAttemptsToSupabase([record]);
+}
+
 function updateProgress() {
   const answered = studentAnswers.filter(ans => ans !== null).length;
   const total = questions.length;
@@ -656,6 +727,7 @@ function finishPractice() {
 checkBtn.addEventListener("click", () => {
   saveCurrentAnswer();
   // optional auto-check logic
+  saveCurrentQuestionToSupabase();
 });
 
 hintBtn.addEventListener("click", () => {
