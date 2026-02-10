@@ -129,6 +129,9 @@ function loadLocalData() {
   allStudentData = raw ? JSON.parse(raw) : [];
   isDataReady = true;
 }
+function createAttemptId() {
+  return Date.now(); // one id per full Submit
+}
 
 function saveLocalAttempt(record) {
   const raw = localStorage.getItem("reflectionPracticeResults");
@@ -152,11 +155,9 @@ const { error } = await window.supabaseClient
       answer: r.answer,
       attempts: r.attempts,
       correct: r.correct,
+      attempt_id: r.attempt_id,
       created_at: r.created_at   // <-- use created_at, not timestamp
     })),
-    {
-      onConflict: "teacher,student_name,question_id"
-    }
   );
 
 if (error) {
@@ -679,13 +680,17 @@ function finishPractice() {
   const currentStudent = rawStudent ? JSON.parse(rawStudent) : null;
   if (!currentStudent) return;
 
-    // Auto‑check all answered questions
+  // 1) Auto-check all answered questions
   questions.forEach((q, index) => {
     if (studentAnswers[index] !== null) {
       evaluateAnswerAt(index);
     }
   });
 
+  // 2) Generate ONE attempt_id for this Submit
+  const attemptId = createAttemptId();
+
+  // 3) Build records with attempt_id
   const records = questions.map((q, index) => ({
     teacher: currentStudent.teacher,
     studentName: currentStudent.student,
@@ -693,17 +698,18 @@ function finishPractice() {
     sbg: q.sbg,
     answer: studentAnswers[index],
     attempts: questionStates[index].attempts,
-    correct: !!questionStates[index].correct,  // force boolean
+    correct: !!questionStates[index].correct,
+    attempt_id: attemptId,                  // NEW
     created_at: new Date().toISOString()
   }));
 
   // keep existing local behavior
   records.forEach(saveLocalAttempt);
 
-  // also send to Supabase (if configured)
+  // 4) Send to Supabase: use INSERT, not upsert
   saveAttemptsToSupabase(records);
 
-  // ---- ORIGINAL SUMMARY SCREEN ----
+  // ---- SUMMARY SCREEN (unchanged) ----
   const total = questions.length;
   const correctCount = questionStates.filter(s => s.correct === true).length;
   const percentCorrect = total ? Math.round((correctCount / total) * 100) : 0;
@@ -720,12 +726,51 @@ function finishPractice() {
     }</td></tr>`;
   });
   html += `</tbody></table>`;
+tml += `<h3>Item Analysis</h3>`;
+  html += `<table><thead><tr><th>Q</th><th>SBG</th><th>Correct?</th></tr></thead><tbody>`;
+  questionStates.forEach((s, index) => {
+    const q = questions[index];
+    html += `<tr><td>${index + 1}</td><td>${q.sbg}</td><td>${
+      s.correct ? "✔" : "✘"
+    }</td></tr>`;
+  });
+  html += `</tbody></table>`;
 
   if (summaryScreen) {
     practiceScreen.style.display = "none";
     summaryScreen.innerHTML = html;
     summaryScreen.style.display = "block";
   }
+// After building summary HTML:
+html += `<button id="new-attempt-btn">Start New Attempt</button>`;
+
+// Then, after injecting summaryScreen.innerHTML:
+const newAttemptBtn = document.getElementById("new-attempt-btn");
+if (newAttemptBtn) {
+  newAttemptBtn.addEventListener("click", () => {
+    summaryScreen.style.display = "none";
+    practiceScreen.style.display = "block";
+    renderQuestion();
+    updateProgress();
+  });
+}
+
+  // 5) OPTIONAL: reset in-memory state so next attempt starts fresh
+  studentAnswers.fill(null);
+  if (summaryScreen) {
+    practiceScreen.style.display = "none";
+    summaryScreen.innerHTML = html;
+    summaryScreen.style.display = "block";
+  }
+
+  // 5) OPTIONAL: reset in-memory state so next attempt starts fresh
+  studentAnswers.fill(null);
+  questionStates.forEach((s) => {
+    s.answered = false;
+    s.correct = null;
+    s.attempts = 0;
+  });
+  currentIndex = 0;
 }
 
 
@@ -811,6 +856,32 @@ if (submitPracticeBtn) {
   submitPracticeBtn.addEventListener("click", () => {
     finishPractice();
     // optional: show summary screen here if you had that logic
+  });
+}
+const saveProgressBtn = document.getElementById("save-progress");
+
+if (saveProgressBtn) {
+  saveProgressBtn.addEventListener("click", async () => {
+    const rawStudent = localStorage.getItem("reflectionCurrentStudent");
+    const currentStudent = rawStudent ? JSON.parse(rawStudent) : null;
+    if (!currentStudent) return;
+
+    // just save current state with a special flag
+    const records = questions.map((q, index) => ({
+      teacher: currentStudent.teacher,
+      studentName: currentStudent.student,
+      questionId: q.id,
+      sbg: q.sbg,
+      answer: studentAnswers[index],
+      attempts: questionStates[index].attempts,
+      correct: !!questionStates[index].correct,
+      attempt_id: null,                      // or a separate draft id
+      created_at: new Date().toISOString()
+    }));
+
+    await saveAttemptsToSupabase(records);
+    feedback.textContent = "Progress saved.";
+    feedback.className = "hint";
   });
 }
 

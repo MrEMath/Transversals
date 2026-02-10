@@ -795,12 +795,12 @@ function renderStudentSummaryAndAttempts(
     return;
   }
 
-  const byAttempt = {};
-  records.forEach((r) => {
-    const attemptId = getAttemptKey(r.timestamp);
-    if (!byAttempt[attemptId]) byAttempt[attemptId] = [];
-    byAttempt[attemptId].push(r);
-  });
+const byAttempt = {};
+records.forEach((r) => {
+  const attemptId = r.attempt_id || getAttemptKey(r.timestamp);
+  if (!byAttempt[attemptId]) byAttempt[attemptId] = [];
+  byAttempt[attemptId].push(r);
+});
 
   const attemptIds = Object.keys(byAttempt).sort();
   const totalAttempts = attemptIds.length;
@@ -904,12 +904,12 @@ function sbgStripClass(level) {
 }
 
 function computeStudentCurrentSbg(recordsForStudent) {
-  const byAttempt = {};
-  recordsForStudent.forEach((r) => {
-    const attemptId = getAttemptKey(r.timestamp);
-    if (!byAttempt[attemptId]) byAttempt[attemptId] = [];
-    byAttempt[attemptId].push(r);
-  });
+const byAttempt = {};
+recordsForStudent.forEach((r) => {
+  const attemptId = r.attempt_id || getAttemptKey(r.timestamp);
+  if (!byAttempt[attemptId]) byAttempt[attemptId] = [];
+  byAttempt[attemptId].push(r);
+});
 
   const attemptIds = Object.keys(byAttempt).sort();
   const latest = byAttempt[attemptIds[attemptIds.length - 1]];
