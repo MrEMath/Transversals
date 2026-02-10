@@ -723,10 +723,67 @@ function finishPractice() {
 
 
 // BUTTON HANDLERS
+function checkCurrentAnswer() {
+  const q = questions[currentIndex];
+  const ans = studentAnswers[currentIndex];
+
+  let isCorrect = false;
+
+  if (q.type === "matrix") {
+    // every statement must match
+    if (ans && typeof ans === "object") {
+      isCorrect = q.statements.every(stmt => ans[stmt.id] === stmt.correct);
+    }
+  } else if (q.type === "fill") {
+    if (ans && typeof ans === "object") {
+      isCorrect = q.blanks.every(blank => {
+        const given = (ans[blank.id] || "").trim();
+        return given === blank.correct;
+      });
+    }
+  } else if (q.type === "multi") {
+    if (ans && typeof ans === "object") {
+      // all correct options checked, all incorrect options unchecked
+      isCorrect = q.options.every(opt => {
+        const shouldBeChecked = !!opt.correct;
+        const isChecked = !!ans[opt.id];
+        return shouldBeChecked === isChecked;
+      });
+    }
+  } else {
+    // regular multiple choice: q.correct is "a","b","c","d"
+    isCorrect = ans === q.correct;
+  }
+
+  const state = questionStates[currentIndex];
+  state.attempts += 1;
+  state.correct = isCorrect;
+
+  // simple feedback
+  if (isCorrect) {
+    feedback.textContent = "Correct!";
+    feedback.className = "correct";
+  } else {
+    feedback.textContent = "Try again.";
+    feedback.className = "incorrect";
+  }
+
+  return isCorrect;
+}
+
 checkBtn.addEventListener("click", () => {
+  // save the latest selection into studentAnswers
   saveCurrentAnswer();
-  // optional auto-check logic
+
+  // evaluate correctness and update questionStates
+  checkCurrentAnswer();
+
+  // now save this question's record (with correct + attempts) to Supabase
   saveCurrentQuestionToSupabase();
+
+  // update UI bits
+  updateProgress();
+  highlightNavigator();
 });
 
 hintBtn.addEventListener("click", () => {
