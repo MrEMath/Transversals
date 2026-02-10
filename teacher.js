@@ -264,6 +264,26 @@ const teacherNameEl = document.getElementById("teacher-name");
     percentEl.style.color = color;
   }
 });
+// after DOMContentLoaded block, add:
+const refreshBtn = document.getElementById("refresh-data-btn");
+if (refreshBtn) {
+  refreshBtn.addEventListener("click", async () => {
+    await loadData();
+    if (currentTeacher) {
+      const overallStatsEl = document.getElementById("overall-stats");
+      const itemAnalysisBody = document.querySelector("#item-analysis-table tbody");
+      const studentSelect = document.getElementById("student-select");
+      const studentSummaryEl = document.getElementById("student-summary");
+
+      renderDashboard(
+        overallStatsEl,
+        itemAnalysisBody,
+        studentSelect,
+        studentSummaryEl
+      );
+    }
+  });
+}
 
 // ---------------- DASHBOARD ----------------
 function renderDashboard(
