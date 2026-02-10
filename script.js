@@ -679,6 +679,13 @@ function finishPractice() {
   const currentStudent = rawStudent ? JSON.parse(rawStudent) : null;
   if (!currentStudent) return;
 
+    // Auto‑check all answered questions
+  questions.forEach((q, index) => {
+    if (studentAnswers[index] !== null) {
+      evaluateAnswerAt(index);
+    }
+  });
+
   const records = questions.map((q, index) => ({
     teacher: currentStudent.teacher,
     studentName: currentStudent.student,
@@ -723,14 +730,13 @@ function finishPractice() {
 
 
 // BUTTON HANDLERS
-function checkCurrentAnswer() {
-  const q = questions[currentIndex];
-  const ans = studentAnswers[currentIndex];
+function evaluateAnswerAt(index) {
+  const q = questions[index];
+  const ans = studentAnswers[index];
 
   let isCorrect = false;
 
   if (q.type === "matrix") {
-    // every statement must match
     if (ans && typeof ans === "object") {
       isCorrect = q.statements.every(stmt => ans[stmt.id] === stmt.correct);
     }
@@ -743,7 +749,6 @@ function checkCurrentAnswer() {
     }
   } else if (q.type === "multi") {
     if (ans && typeof ans === "object") {
-      // all correct options checked, all incorrect options unchecked
       isCorrect = q.options.every(opt => {
         const shouldBeChecked = !!opt.correct;
         const isChecked = !!ans[opt.id];
@@ -751,15 +756,20 @@ function checkCurrentAnswer() {
       });
     }
   } else {
-    // regular multiple choice: q.correct is "a","b","c","d"
     isCorrect = ans === q.correct;
   }
 
-  const state = questionStates[currentIndex];
+  const state = questionStates[index];
   state.attempts += 1;
   state.correct = isCorrect;
 
-  // simple feedback
+  return isCorrect;
+}
+
+checkBtn.addEventListener("click", () => {
+  saveCurrentAnswer();
+  const isCorrect = evaluateAnswerAt(currentIndex);
+
   if (isCorrect) {
     feedback.textContent = "Correct!";
     feedback.className = "correct";
@@ -768,20 +778,7 @@ function checkCurrentAnswer() {
     feedback.className = "incorrect";
   }
 
-  return isCorrect;
-}
-
-checkBtn.addEventListener("click", () => {
-  // save the latest selection into studentAnswers
-  saveCurrentAnswer();
-
-  // evaluate correctness and update questionStates
-  checkCurrentAnswer();
-
-  // now save this question's record (with correct + attempts) to Supabase
   saveCurrentQuestionToSupabase();
-
-  // update UI bits
   updateProgress();
   highlightNavigator();
 });
