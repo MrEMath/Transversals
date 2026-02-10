@@ -11,7 +11,7 @@ let currentTeacher = null;
 let allRecords = [];
 let currentStudentName = null;
 
-// ---------------- STUDENT DATA REFRESH) ----------------
+// ---------------- STUDENT DATA RESET ----------------
 async function resetStudentData(teacher, studentName) {
   if (typeof window.supabaseClient === "undefined") return;
 
@@ -24,7 +24,7 @@ async function resetStudentData(teacher, studentName) {
     .from("attempts")
     .delete()
     .eq("teacher", teacher)
-    .eq("student_name", studentName);  // matches columns you already use [file:3]
+    .eq("student_name", studentName);
 
   if (error) {
     console.error("Error resetting student attempts", error);
@@ -32,81 +32,11 @@ async function resetStudentData(teacher, studentName) {
     return;
   }
 
-  // Re-load your data and repaint the dashboard
-  await loadData();        // whatever you already use to fetch attempts
-  renderDashboard();       // or your actual render function
-}
-
-// ---------------- DATA LOAD FROM SUPABASE ----------------
-async function loadData() {
-  if (typeof window.supabaseClient === "undefined") {
-    allRecords = [];
-    return;
-  }
-
-  const { data, error } = await window.supabaseClient
-    .from("attempts")
-    .select("*");
-
-  if (error) {
-    console.error("Error loading attempts from Supabase", error);
-    allRecords = [];
-    return;
-  }
-
-  // Normalize column names to match existing teacher.js expectations
-  allRecords = (data || []).map(row => ({
-    teacher: row.teacher,
-    studentName: row.student_name,
-    questionId: row.question_id,
-    sbg: row.sbg,
-    answer: row.answer,
-    attempts: row.attempts,
-    correct: row.correct,
-    timestamp: row.created_at  // use created_at as the timestamp 
-  }));
-}
-
-// collapse timestamps to the minute so attempts are not split
-function getAttemptKey(ts) {
-  const d = new Date(ts);
-  d.setSeconds(0, 0);
-  return d.getTime();
-}
-
-// ---------------- DOM READY ----------------
-document.addEventListener("DOMContentLoaded", async () => {
-const teacherNameEl = document.getElementById("teacher-name");
-  const teacherPasswordEl = document.getElementById("teacher-password");
-  const teacherLoginBtn = document.getElementById("teacher-login-btn");
-  const teacherLoginError = document.getElementById("teacher-login-error");
-
-  const loginSection = document.getElementById("teacher-login");
-  const dashboardSection = document.getElementById("teacher-dashboard");
-
-  const overallStatsEl = document.getElementById("overall-stats");
-  const itemAnalysisBody = document.querySelector("#item-analysis-table tbody");
-  const studentSelect = document.getElementById("student-select");
-  const studentSummaryEl = document.getElementById("student-summary");
-  const attemptSelect = document.getElementById("attempt-select");
-
   await loadData();
+  // caller will re-render dashboard with currentTeacher context
+}
 
-  let currentStudentItems = [];
-  let currentItemIndex = 0;
-  updateItemFlipcard();
-
-  // ---- RESET BUTTON WIRING ----
-  const resetBtn = document.getElementById("reset-student-btn");
-  if (resetBtn) {
-    resetBtn.addEventListener("click", () => {
-      if (!currentTeacher || !currentStudentName) {
-        alert("Select a student first.");
-        return;
-      }
-      resetStudentData(currentTeacher, currentStudentName);
-    });
-  }
+// ---------------- DELETE ONE ATTEMPT (BUCKET) ----------------
 async function deleteAttempt(teacher, studentName, attemptIdMs) {
   if (typeof window.supabaseClient === "undefined") return;
 
@@ -140,7 +70,6 @@ async function deleteAttempt(teacher, studentName, attemptIdMs) {
     document.getElementById("student-summary")
   );
 
-  // Clear attempt strip and dropdown
   const strip = document.getElementById("student-item-strip");
   if (strip) strip.innerHTML = "";
   const attemptSelect = document.getElementById("attempt-select");
@@ -150,57 +79,177 @@ async function deleteAttempt(teacher, studentName, attemptIdMs) {
   }
 }
 
-// ---- TEACHER LOGIN WIRING ----
-teacherLoginBtn.addEventListener("click", () => {
-  const name = teacherNameEl.value;
-  const pwd = teacherPasswordEl.value.trim();
-
-  if (!name || !pwd) {
-    teacherLoginError.textContent = "Select your name and enter password.";
+// ---------------- DATA LOAD FROM SUPABASE ----------------
+async function loadData() {
+  if (typeof window.supabaseClient === "undefined") {
+    allRecords = [];
     return;
   }
 
-  if (TEACHER_PASSWORDS[name] !== pwd) {
-    teacherLoginError.textContent = "Incorrect password.";
+  const { data, error } = await window.supabaseClient
+    .from("attempts")
+    .select("*");
+
+  if (error) {
+    console.error("Error loading attempts from Supabase", error);
+    allRecords = [];
     return;
   }
 
-  teacherLoginError.textContent = "";
-  currentTeacher = name;
-  loginSection.style.display = "none";
-  dashboardSection.style.display = "block";
+  allRecords = (data || []).map((row) => ({
+    teacher: row.teacher,
+    studentName: row.student_name,
+    questionId: row.question_id,
+    sbg: row.sbg,
+    answer: row.answer,
+    attempts: row.attempts,
+    correct: row.correct,
+    timestamp: row.created_at
+  }));
+}
 
-  document.getElementById("dashboard-title").textContent =
-    `Teacher Dashboard – ${name}`;
+// collapse timestamps to the minute so attempts are not split
+function getAttemptKey(ts) {
+  const d = new Date(ts);
+  d.setSeconds(0, 0);
+  return d.getTime();
+}
 
-  renderDashboard(
-    overallStatsEl,
-    itemAnalysisBody,
-    studentSelect,
-    studentSummaryEl
-  );
-});
+// ---------------- DOM READY ----------------
+document.addEventListener("DOMContentLoaded", async () => {
+  const teacherNameEl = document.getElementById("teacher-name");
+  const teacherPasswordEl = document.getElementById("teacher-password");
+  const teacherLoginBtn = document.getElementById("teacher-login-btn");
+  const teacherLoginError = document.getElementById("teacher-login-error");
 
-// Student dropdown change
-studentSelect.addEventListener("change", () => {
-  const name = studentSelect.value;
-  currentStudentName = name;  // <--- track selected student
+  const loginSection = document.getElementById("teacher-login");
+  const dashboardSection = document.getElementById("teacher-dashboard");
 
-  studentSummaryEl.innerHTML = "";
-  attemptSelect.innerHTML = "";
+  const overallStatsEl = document.getElementById("overall-stats");
+  const itemAnalysisBody = document.querySelector("#item-analysis-table tbody");
+  const studentSelect = document.getElementById("student-select");
+  const studentSummaryEl = document.getElementById("student-summary");
+  const attemptSelect = document.getElementById("attempt-select");
 
-  const strip = document.getElementById("student-item-strip");
-  if (strip) strip.innerHTML = "";
+  const resetBtn = document.getElementById("reset-student-btn");
+  const refreshBtn = document.getElementById("refresh-data-btn");
+  const deleteAttemptBtn = document.getElementById("delete-attempt-btn");
 
-  if (!name) {
-    currentStudentItems = [];
-    updateItemFlipcard();
-    return;
+  await loadData();
+
+  let currentStudentItems = [];
+  let currentItemIndex = 0;
+  updateItemFlipcard();
+
+  // RESET BUTTON
+  if (resetBtn) {
+    resetBtn.addEventListener("click", async () => {
+      if (!currentTeacher || !currentStudentName) {
+        alert("Select a student first.");
+        return;
+      }
+      await resetStudentData(currentTeacher, currentStudentName);
+      renderDashboard(
+        overallStatsEl,
+        itemAnalysisBody,
+        studentSelect,
+        studentSummaryEl
+      );
+      // clear student-specific UI
+      studentSummaryEl.innerHTML = "";
+      attemptSelect.innerHTML = `<option value="">Select an attempt</option>`;
+      const strip = document.getElementById("student-item-strip");
+      if (strip) strip.innerHTML = "";
+      currentStudentItems = [];
+      updateItemFlipcard();
+    });
   }
 
-  renderStudentSummaryAndAttempts(name, studentSummaryEl, attemptSelect);
-  computeStudentItemAccuracy(name);
-});
+  // REFRESH BUTTON
+  if (refreshBtn) {
+    refreshBtn.addEventListener("click", async () => {
+      await loadData();
+      if (currentTeacher) {
+        renderDashboard(
+          overallStatsEl,
+          itemAnalysisBody,
+          studentSelect,
+          studentSummaryEl
+        );
+      }
+    });
+  }
+
+  // DELETE ATTEMPT BUTTON
+  if (deleteAttemptBtn) {
+    deleteAttemptBtn.addEventListener("click", () => {
+      const attemptId = attemptSelect.value;
+      const studentName = attemptSelect.studentName;
+
+      if (!currentTeacher || !studentName) {
+        alert("Select a student first.");
+        return;
+      }
+      if (!attemptId) {
+        alert("Select an attempt to delete.");
+        return;
+      }
+
+      deleteAttempt(currentTeacher, studentName, attemptId);
+    });
+  }
+
+  // TEACHER LOGIN
+  teacherLoginBtn.addEventListener("click", () => {
+    const name = teacherNameEl.value;
+    const pwd = teacherPasswordEl.value.trim();
+
+    if (!name || !pwd) {
+      teacherLoginError.textContent = "Select your name and enter password.";
+      return;
+    }
+
+    if (TEACHER_PASSWORDS[name] !== pwd) {
+      teacherLoginError.textContent = "Incorrect password.";
+      return;
+    }
+
+    teacherLoginError.textContent = "";
+    currentTeacher = name;
+    loginSection.style.display = "none";
+    dashboardSection.style.display = "block";
+
+    document.getElementById("dashboard-title").textContent =
+      `Teacher Dashboard – ${name}`;
+
+    renderDashboard(
+      overallStatsEl,
+      itemAnalysisBody,
+      studentSelect,
+      studentSummaryEl
+    );
+  });
+
+  // Student dropdown change
+  studentSelect.addEventListener("change", () => {
+    const name = studentSelect.value;
+    currentStudentName = name;
+
+    studentSummaryEl.innerHTML = "";
+    attemptSelect.innerHTML = "";
+
+    const strip = document.getElementById("student-item-strip");
+    if (strip) strip.innerHTML = "";
+
+    if (!name) {
+      currentStudentItems = [];
+      updateItemFlipcard();
+      return;
+    }
+
+    renderStudentSummaryAndAttempts(name, studentSummaryEl, attemptSelect);
+    computeStudentItemAccuracy(name);
+  });
 
   // Attempt dropdown change
   attemptSelect.addEventListener("change", () => {
@@ -345,45 +394,6 @@ studentSelect.addEventListener("change", () => {
     percentEl.style.color = color;
   }
 });
-// after DOMContentLoaded block, add:
-const refreshBtn = document.getElementById("refresh-data-btn");
-if (refreshBtn) {
-  refreshBtn.addEventListener("click", async () => {
-    await loadData();
-    if (currentTeacher) {
-      const overallStatsEl = document.getElementById("overall-stats");
-      const itemAnalysisBody = document.querySelector("#item-analysis-table tbody");
-      const studentSelect = document.getElementById("student-select");
-      const studentSummaryEl = document.getElementById("student-summary");
-
-      renderDashboard(
-        overallStatsEl,
-        itemAnalysisBody,
-        studentSelect,
-        studentSummaryEl
-      );
-    }
-  });
-  // DELETE ATTEMPT BUTTON
-  if (deleteAttemptBtn) {
-    deleteAttemptBtn.addEventListener("click", () => {
-      const attemptId = attemptSelect.value;
-      const studentName = attemptSelect.studentName;
-
-      if (!currentTeacher || !studentName) {
-        alert("Select a student first.");
-        return;
-      }
-      if (!attemptId) {
-        alert("Select an attempt to delete.");
-        return;
-      }
-
-      deleteAttempt(currentTeacher, studentName, attemptId);
-    });
-  }
-
-}
 
 // ---------------- DASHBOARD ----------------
 function renderDashboard(
@@ -761,7 +771,9 @@ function buildLatestByStudentQuestion(teacherRecords) {
     const key = `${r.studentName}-${r.questionId}`;
     if (!latest[key]) {
       latest[key] = r;
-    } else if (getAttemptKey(r.timestamp) > getAttemptKey(latest[key].timestamp)) {
+    } else if (
+      getAttemptKey(r.timestamp) > getAttemptKey(latest[key].timestamp)
+    ) {
       latest[key] = r;
     }
   });
