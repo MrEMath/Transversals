@@ -38,7 +38,7 @@ const roster = {
     "Nessa L","Lily L","Ca'Myah M","Keiry M","Mauricio O","Devick M","David R","Makenzie R",
     "Keilyn S","Johani D","Jeremy P","Brendan C","Amiyah W","Violet L"
   ],
-  Massengill: [Massengill: [
+  Massengill:[
   "Anzie E",
   "Evelin A",
   "Cing C",
@@ -107,7 +107,6 @@ const roster = {
   "Rosselyn A",
   "Alannah T",
   "Jaselle W"
-],
 ],
   Clark: [
     "Angela A","Violet A","Youanna A","Karim O","Joel C","Zenobia D","Gianni F",
