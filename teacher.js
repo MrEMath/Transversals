@@ -10,7 +10,32 @@ const TEACHER_PASSWORDS = {
 let currentTeacher = null;
 let allRecords = [];
 
-// ---------------- DATA LOAD (FROM SUPABASE) ----------------
+// ---------------- STUDENT DATA REFRESH) ----------------
+async function resetStudentData(teacher, studentName) {
+  if (typeof window.supabaseClient === "undefined") return;
+
+  const confirmReset = window.confirm(
+    `Reset ALL attempts for ${studentName}? This cannot be undone.`
+  );
+  if (!confirmReset) return;
+
+  const { error } = await window.supabaseClient
+    .from("attempts")
+    .delete()
+    .eq("teacher", teacher)
+    .eq("student_name", studentName);  // matches columns you already use [file:3]
+
+  if (error) {
+    console.error("Error resetting student attempts", error);
+    alert("There was an error resetting this student. Please try again.");
+    return;
+  }
+
+  // Re-load your data and repaint the dashboard
+  await loadData();        // whatever you already use to fetch attempts
+  renderDashboard();       // or your actual render function
+}
+
 // ---------------- DATA LOAD FROM SUPABASE ----------------
 async function loadData() {
   if (typeof window.supabaseClient === "undefined") {
@@ -63,18 +88,31 @@ const teacherNameEl = document.getElementById("teacher-name");
   const studentSelect = document.getElementById("student-select");
   const studentSummaryEl = document.getElementById("student-summary");
   const attemptSelect = document.getElementById("attempt-select");
-  // load data from Supabase before any dashboard rendering
+
   await loadData();
 
-  // show placeholder in flipcard on first load
   let currentStudentItems = [];
   let currentItemIndex = 0;
   updateItemFlipcard();
 
-  // Login
+  // ---- RESET BUTTON WIRING ----
+  const resetBtn = document.getElementById("reset-student-btn");
+  if (resetBtn) {
+    resetBtn.addEventListener("click", () => {
+      if (!currentTeacher || !currentStudentName) {
+        alert("Select a student first.");
+        return;
+      }
+      resetStudentData(currentTeacher, currentStudentName);
+    });
+  }
+
+  // ---- TEACHER LOGIN WIRING ----
   teacherLoginBtn.addEventListener("click", () => {
     const name = teacherNameEl.value;
     const pwd = teacherPasswordEl.value.trim();
+    // ... existing login logic ...
+  });
 
     if (!name || !pwd) {
       teacherLoginError.textContent = "Select your name and enter password.";
