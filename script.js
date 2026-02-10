@@ -141,27 +141,26 @@ function saveLocalAttempt(record) {
 async function saveAttemptsToSupabase(records) {
   if (typeof window.supabaseClient === "undefined") return;
 
-  const { error } = await window.supabaseClient
-    .from("attempts")
-    .upsert(
-      records.map(r => ({
-        teacher: r.teacher,
-        student_name: r.studentName,
-        question_id: r.questionId,
-        sbg: r.sbg,
-        answer: r.answer,
-        attempts: r.attempts,
-        correct: r.correct,
-        timestamp: r.timestamp
-      })),
-      {
-        onConflict: "teacher,student_name,question_id"
-      }
-    );
+const { error } = await window.supabaseClient
+  .from("attempts")
+  .upsert(
+    records.map(r => ({
+      teacher: r.teacher,
+      student_name: r.studentName,
+      question_id: r.questionId,
+      sbg: r.sbg,
+      answer: r.answer,
+      attempts: r.attempts,
+      correct: r.correct,
+      created_at: r.created_at   // <-- use created_at, not timestamp
+    })),
+    {
+      onConflict: "teacher,student_name,question_id"
+    }
+  );
 
-  if (error) {
-    console.error("Error upserting attempts into Supabase", error);
-  }
+if (error) {
+  console.error("Error upserting attempts into Supabase", error);
 }
 
 // ----- DATA -----
