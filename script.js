@@ -138,7 +138,6 @@ function saveLocalAttempt(record) {
 }
 
 // ----- SUPABASE SAVE updated -----
-// ----- SUPABASE SAVE updated -----
 async function saveAttemptsToSupabase(records) {
   if (typeof window.supabaseClient === "undefined") return;
 
@@ -147,8 +146,8 @@ async function saveAttemptsToSupabase(records) {
     .upsert(
       records.map(r => ({
         teacher: r.teacher,
-        student_name: r.studentName,   // JS field -> DB column
-        question_id: r.questionId,     // JS field -> DB column
+        student_name: r.studentName,
+        question_id: r.questionId,
         sbg: r.sbg,
         answer: r.answer,
         attempts: r.attempts,
