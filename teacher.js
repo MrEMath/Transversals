@@ -107,38 +107,36 @@ const teacherNameEl = document.getElementById("teacher-name");
     });
   }
 
-  // ---- TEACHER LOGIN WIRING ----
-  teacherLoginBtn.addEventListener("click", () => {
-    const name = teacherNameEl.value;
-    const pwd = teacherPasswordEl.value.trim();
-    // ... existing login logic ...
-  });
+// ---- TEACHER LOGIN WIRING ----
+teacherLoginBtn.addEventListener("click", () => {
+  const name = teacherNameEl.value;
+  const pwd = teacherPasswordEl.value.trim();
 
-    if (!name || !pwd) {
-      teacherLoginError.textContent = "Select your name and enter password.";
-      return;
-    }
+  if (!name || !pwd) {
+    teacherLoginError.textContent = "Select your name and enter password.";
+    return;
+  }
 
-    if (TEACHER_PASSWORDS[name] !== pwd) {
-      teacherLoginError.textContent = "Incorrect password.";
-      return;
-    }
+  if (TEACHER_PASSWORDS[name] !== pwd) {
+    teacherLoginError.textContent = "Incorrect password.";
+    return;
+  }
 
-    teacherLoginError.textContent = "";
-    currentTeacher = name;
-    loginSection.style.display = "none";
-    dashboardSection.style.display = "block";
+  teacherLoginError.textContent = "";
+  currentTeacher = name;
+  loginSection.style.display = "none";
+  dashboardSection.style.display = "block";
 
-    document.getElementById("dashboard-title").textContent =
-      `Teacher Dashboard – ${name}`;
+  document.getElementById("dashboard-title").textContent =
+    `Teacher Dashboard – ${name}`;
 
-    renderDashboard(
-      overallStatsEl,
-      itemAnalysisBody,
-      studentSelect,
-      studentSummaryEl
-    );
-  });
+  renderDashboard(
+    overallStatsEl,
+    itemAnalysisBody,
+    studentSelect,
+    studentSummaryEl
+  );
+});
 
   // Student dropdown change
   studentSelect.addEventListener("change", () => {
