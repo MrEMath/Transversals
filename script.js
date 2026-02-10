@@ -162,6 +162,7 @@ const { error } = await window.supabaseClient
 if (error) {
   console.error("Error upserting attempts into Supabase", error);
 }
+}
 
 // ----- DATA -----
 const questions = [
