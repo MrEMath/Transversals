@@ -161,7 +161,7 @@ const { error } = await window.supabaseClient
   );
 
 if (error) {
-  console.error("Error upserting attempts into Supabase", error);
+  console.error("Error insesrting attempts into Supabase", error);
 }
 }
 
@@ -673,12 +673,11 @@ function updateButtons() {
   nextBtn.disabled = currentIndex === questions.length - 1;
 }
 
-// FINISH PRACTICE (local + Supabase + summary)
 function finishPractice() {
   const rawStudent = localStorage.getItem("reflectionCurrentStudent");
   const currentStudent = rawStudent ? JSON.parse(rawStudent) : null;
   if (!currentStudent) return;
-}
+
   // 1) Auto-check all answered questions
   questions.forEach((q, index) => {
     if (studentAnswers[index] !== null) {
@@ -698,60 +697,54 @@ function finishPractice() {
     answer: studentAnswers[index],
     attempts: questionStates[index].attempts,
     correct: !!questionStates[index].correct,
-    attempt_id: attemptId,                  // NEW
+    attempt_id: attemptId,
     created_at: new Date().toISOString()
   }));
 
-  // keep existing local behavior
   records.forEach(saveLocalAttempt);
-
-  // 4) Send to Supabase: use INSERT, not upsert
   saveAttemptsToSupabase(records);
 
-  // ---- // ---- SUMMARY SCREEN ----
-const total = questions.length;
-const correctCount = questionStates.filter(s => s.correct === true).length;
-const percentCorrect = total ? Math.round((correctCount / total) * 100) : 0;
+  // ---- SUMMARY SCREEN ----
+  const total = questions.length;
+  const correctCount = questionStates.filter(s => s.correct === true).length;
+  const percentCorrect = total ? Math.round((correctCount / total) * 100) : 0;
 
-let html = "";
-html += `<h2>Practice Results</h2>`;
-html += `<p>You answered ${correctCount} out of ${total} correctly (${percentCorrect}%).</p>`;
-html += `<h3>Item Analysis</h3>`;
-html += `<table><thead><tr><th>Q</th><th>SBG</th><th>Correct?</th></tr></thead><tbody>`;
-questionStates.forEach((s, index) => {
-  const q = questions[index];
-  html += `<tr><td>${index + 1}</td><td>${q.sbg}</td><td>${
-    s.correct ? "✔" : "✘"
-  }</td></tr>`;
-});
-html += `</tbody></table>`;
+  let html = "";
+  html += `<h2>Practice Results</h2>`;
+  html += `<p>You answered ${correctCount} out of ${total} correctly (${percentCorrect}%).</p>`;
+  html += `<h3>Item Analysis</h3>`;
+  html += `<table><thead><tr><th>Q</th><th>SBG</th><th>Correct?</th></tr></thead><tbody>`;
+  questionStates.forEach((s, index) => {
+    const q = questions[index];
+    html += `<tr><td>${index + 1}</td><td>${q.sbg}</td><td>${
+      s.correct ? "✔" : "✘"
+    }</td></tr>`;
+  });
+  html += `</tbody></table>`;
+  html += `<button id="new-attempt-btn">Start New Attempt</button>`;
 
-// Add the new-attempt button to the summary HTML
-html += `<button id="new-attempt-btn">Start New Attempt</button>`;
+  if (summaryScreen) {
+    practiceScreen.style.display = "none";
+    summaryScreen.innerHTML = html;
+    summaryScreen.style.display = "block";
 
-if (summaryScreen) {
-  practiceScreen.style.display = "none";
-  summaryScreen.innerHTML = html;
-  summaryScreen.style.display = "block";
+    const newAttemptBtn = document.getElementById("new-attempt-btn");
+    if (newAttemptBtn) {
+      newAttemptBtn.addEventListener("click", () => {
+        studentAnswers.fill(null);
+        questionStates.forEach((s) => {
+          s.answered = false;
+          s.correct = null;
+          s.attempts = 0;
+        });
+        currentIndex = 0;
 
-  // Wire the new attempt button
-  const newAttemptBtn = document.getElementById("new-attempt-btn");
-  if (newAttemptBtn) {
-    newAttemptBtn.addEventListener("click", () => {
-      // reset in-memory state so next attempt starts fresh
-      studentAnswers.fill(null);
-      questionStates.forEach((s) => {
-        s.answered = false;
-        s.correct = null;
-        s.attempts = 0;
+        summaryScreen.style.display = "none";
+        practiceScreen.style.display = "block";
+        renderQuestion();
+        updateProgress();
       });
-      currentIndex = 0;
-
-      summaryScreen.style.display = "none";
-      practiceScreen.style.display = "block";
-      renderQuestion();
-      updateProgress();
-    });
+    }
   }
 }
 
