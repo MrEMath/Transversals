@@ -146,7 +146,7 @@ async function saveAttemptsToSupabase(records) {
 
 const { error } = await window.supabaseClient
   .from("attempts")
-  .upsert(
+  .insert(
     records.map(r => ({
       teacher: r.teacher,
       student_name: r.studentName,
@@ -709,69 +709,53 @@ function finishPractice() {
   // 4) Send to Supabase: use INSERT, not upsert
   saveAttemptsToSupabase(records);
 
-  // ---- SUMMARY SCREEN (unchanged) ----
-  const total = questions.length;
-  const correctCount = questionStates.filter(s => s.correct === true).length;
-  const percentCorrect = total ? Math.round((correctCount / total) * 100) : 0;
+  // ---- // ---- SUMMARY SCREEN ----
+const total = questions.length;
+const correctCount = questionStates.filter(s => s.correct === true).length;
+const percentCorrect = total ? Math.round((correctCount / total) * 100) : 0;
 
-  let html = "";
-  html += `<h2>Practice Results</h2>`;
-  html += `<p>You answered ${correctCount} out of ${total} correctly (${percentCorrect}%).</p>`;
-  html += `<h3>Item Analysis</h3>`;
-  html += `<table><thead><tr><th>Q</th><th>SBG</th><th>Correct?</th></tr></thead><tbody>`;
-  questionStates.forEach((s, index) => {
-    const q = questions[index];
-    html += `<tr><td>${index + 1}</td><td>${q.sbg}</td><td>${
-      s.correct ? "✔" : "✘"
-    }</td></tr>`;
-  });
-  html += `</tbody></table>`;
-tml += `<h3>Item Analysis</h3>`;
-  html += `<table><thead><tr><th>Q</th><th>SBG</th><th>Correct?</th></tr></thead><tbody>`;
-  questionStates.forEach((s, index) => {
-    const q = questions[index];
-    html += `<tr><td>${index + 1}</td><td>${q.sbg}</td><td>${
-      s.correct ? "✔" : "✘"
-    }</td></tr>`;
-  });
-  html += `</tbody></table>`;
+let html = "";
+html += `<h2>Practice Results</h2>`;
+html += `<p>You answered ${correctCount} out of ${total} correctly (${percentCorrect}%).</p>`;
+html += `<h3>Item Analysis</h3>`;
+html += `<table><thead><tr><th>Q</th><th>SBG</th><th>Correct?</th></tr></thead><tbody>`;
+questionStates.forEach((s, index) => {
+  const q = questions[index];
+  html += `<tr><td>${index + 1}</td><td>${q.sbg}</td><td>${
+    s.correct ? "✔" : "✘"
+  }</td></tr>`;
+});
+html += `</tbody></table>`;
 
-  if (summaryScreen) {
-    practiceScreen.style.display = "none";
-    summaryScreen.innerHTML = html;
-    summaryScreen.style.display = "block";
-  }
-// After building summary HTML:
+// Add the new-attempt button to the summary HTML
 html += `<button id="new-attempt-btn">Start New Attempt</button>`;
 
-// Then, after injecting summaryScreen.innerHTML:
-const newAttemptBtn = document.getElementById("new-attempt-btn");
-if (newAttemptBtn) {
-  newAttemptBtn.addEventListener("click", () => {
-    summaryScreen.style.display = "none";
-    practiceScreen.style.display = "block";
-    renderQuestion();
-    updateProgress();
-  });
-}
+if (summaryScreen) {
+  practiceScreen.style.display = "none";
+  summaryScreen.innerHTML = html;
+  summaryScreen.style.display = "block";
 
-  // 5) OPTIONAL: reset in-memory state so next attempt starts fresh
-  studentAnswers.fill(null);
-  if (summaryScreen) {
-    practiceScreen.style.display = "none";
-    summaryScreen.innerHTML = html;
-    summaryScreen.style.display = "block";
+  // Wire the new attempt button
+  const newAttemptBtn = document.getElementById("new-attempt-btn");
+  if (newAttemptBtn) {
+    newAttemptBtn.addEventListener("click", () => {
+      // reset in-memory state so next attempt starts fresh
+      studentAnswers.fill(null);
+      questionStates.forEach((s) => {
+        s.answered = false;
+        s.correct = null;
+        s.attempts = 0;
+      });
+      currentIndex = 0;
+
+      summaryScreen.style.display = "none";
+      practiceScreen.style.display = "block";
+      renderQuestion();
+      updateProgress();
+    });
   }
-
-  // 5) OPTIONAL: reset in-memory state so next attempt starts fresh
-  studentAnswers.fill(null);
-  questionStates.forEach((s) => {
-    s.answered = false;
-    s.correct = null;
-    s.attempts = 0;
-  });
-  currentIndex = 0;
 }
+
 
 
 // BUTTON HANDLERS
