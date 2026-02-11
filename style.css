@@ -65,7 +65,7 @@ main {
   padding: 6px 10px;
   border: 1px solid #bbb;
   background-color: #333;  /* darker gray */
-  color: #d0d0d0;                /* dark text for contrast */
+  color: #d0d0d0;  /* dark text for contrast */
   cursor: pointer;
 }
 
@@ -76,6 +76,7 @@ main {
 
 #item-navigator .item-button.answered {
   background-color: #316b33;
+  color:white
 }
 
 /* Problem area */
