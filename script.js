@@ -312,7 +312,7 @@ const loginError = document.getElementById("login-error");
 const submitPracticeBtn = document.getElementById("submit-practice");
 const summaryScreen = document.getElementById("summary-screen");
 
-async function async function restoreStudentProgressFromSupabase(teacher, student) {
+async function restoreStudentProgressFromSupabase(teacher, student) {
   if (typeof window.supabaseClient === "undefined") return;
 
   const { data, error } = await window.supabaseClient
@@ -690,7 +690,7 @@ function updateButtons() {
   nextBtn.disabled = currentIndex === questions.length - 1;
 }
 
-function function finishPractice() {
+function finishPractice() {
   const rawStudent = localStorage.getItem("reflectionCurrentStudent");
   const currentStudent = rawStudent ? JSON.parse(rawStudent) : null;
   if (!currentStudent) return;
