@@ -116,10 +116,16 @@ main {
 
 /* Buttons */
 button {
-  margin-right: 8px;
-  margin-top: 10px;
-  padding: 6px 12px;
+  background-color: #c41524;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 10px 50px;
+  font-size: 16px;
   cursor: pointer;
+  font-weight: bold;
+  margin-top: 10px;
+  margin-right: 8px;
 }
 
 button:disabled {
@@ -203,12 +209,8 @@ button:disabled {
   color: #c51d34;
 }
 
-/* Buttons */
-button {
-  margin-right: 8px;
-  margin-top: 10px;
-  padding: 6px 12px;
-  cursor: pointer;
+button.secondary {
+  background-color: #808080;
 }
 
 button:disabled {
