@@ -312,7 +312,7 @@ const loginError = document.getElementById("login-error");
 const submitPracticeBtn = document.getElementById("submit-practice");
 const summaryScreen = document.getElementById("summary-screen");
 
-async function restoreStudentProgressFromSupabase(teacher, student) {
+async function async function restoreStudentProgressFromSupabase(teacher, student) {
   if (typeof window.supabaseClient === "undefined") return;
 
   const { data, error } = await window.supabaseClient
@@ -326,14 +326,31 @@ async function restoreStudentProgressFromSupabase(teacher, student) {
     return;
   }
 
-  // reset
+  // reset everything
   for (let i = 0; i < questions.length; i++) {
     studentAnswers[i] = null;
     questionStates[i] = { answered: false, correct: null, attempts: 0 };
   }
 
-  // hydrate
+  if (!data || !data.length) {
+    updateProgress();
+    highlightNavigator();
+    return;
+  }
+
+  // group rows by attempt_id (fallback to created_at if needed)
+  const byAttempt = {};
   data.forEach(r => {
+    const attemptId = r.attempt_id || new Date(r.created_at).getTime();
+    if (!byAttempt[attemptId]) byAttempt[attemptId] = [];
+    byAttempt[attemptId].push(r);
+  });
+
+  const attemptIds = Object.keys(byAttempt).map(Number).sort((a, b) => a - b);
+  const latestAttemptRows = byAttempt[attemptIds[attemptIds.length - 1]];
+
+  // hydrate from the latest saved attempt
+  latestAttemptRows.forEach(r => {
     const index = questions.findIndex(q => q.id === r.question_id);
     if (index === -1) return;
 
@@ -673,7 +690,7 @@ function updateButtons() {
   nextBtn.disabled = currentIndex === questions.length - 1;
 }
 
-function finishPractice() {
+function function finishPractice() {
   const rawStudent = localStorage.getItem("reflectionCurrentStudent");
   const currentStudent = rawStudent ? JSON.parse(rawStudent) : null;
   if (!currentStudent) return;
@@ -701,10 +718,11 @@ function finishPractice() {
     created_at: new Date().toISOString()
   }));
 
+  // local and Supabase save
   records.forEach(saveLocalAttempt);
   saveAttemptsToSupabase(records);
 
-  // ---- SUMMARY SCREEN ----
+  // 4) Summary screen
   const total = questions.length;
   const correctCount = questionStates.filter(s => s.correct === true).length;
   const percentCorrect = total ? Math.round((correctCount / total) * 100) : 0;
@@ -731,6 +749,7 @@ function finishPractice() {
     const newAttemptBtn = document.getElementById("new-attempt-btn");
     if (newAttemptBtn) {
       newAttemptBtn.addEventListener("click", () => {
+        // reset state so the next attempt is blank
         studentAnswers.fill(null);
         questionStates.forEach((s) => {
           s.answered = false;
