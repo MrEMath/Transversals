@@ -673,13 +673,12 @@ function updateButtons() {
   nextBtn.disabled = currentIndex === questions.length - 1;
 }
 
-// FINISH PRACTICE (local + Supabase)
 // FINISH PRACTICE (local + Supabase + summary)
 function finishPractice() {
   const rawStudent = localStorage.getItem("reflectionCurrentStudent");
   const currentStudent = rawStudent ? JSON.parse(rawStudent) : null;
   if (!currentStudent) return;
-
+}
   // 1) Auto-check all answered questions
   questions.forEach((q, index) => {
     if (studentAnswers[index] !== null) {
