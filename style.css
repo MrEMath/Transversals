@@ -101,7 +101,7 @@ main {
 }
 
 .feedback-message.correct {
-  color: #2e7d32;
+  color: #316b33;
 }
 
 .feedback-message.incorrect {
@@ -152,7 +152,7 @@ button:disabled {
 #progress-bar {
   height: 100%;
   width: 0%;
-  background-color: #4caf50;
+  background-color: #316b33;
   transition: width 0.3s ease;
 }
 
@@ -175,7 +175,7 @@ button:disabled {
 }
 
 #item-navigator .item-button.answered {
-  border-color: #4caf50;
+  border-color: #316b33;
 }
 
 /* Problem area */
