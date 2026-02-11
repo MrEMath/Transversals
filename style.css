@@ -64,8 +64,8 @@ main {
   margin: 2px;
   padding: 6px 10px;
   border: 1px solid #bbb;
-  background-color: #d0d0d0;  /* darker gray */
-  color: #333;                /* dark text for contrast */
+  background-color: #333;  /* darker gray */
+  color: #d0d0d0;                /* dark text for contrast */
   cursor: pointer;
 }
 
