@@ -843,17 +843,17 @@ if (saveProgressBtn) {
     if (!currentStudent) return;
 
     // just save current state with a special flag
-    const records = questions.map((q, index) => ({
-      teacher: currentStudent.teacher,
-      studentName: currentStudent.student,
-      questionId: q.id,
-      sbg: q.sbg,
-      answer: studentAnswers[index],
-      attempts: questionStates[index].attempts,
-      correct: !!questionStates[index].correct,
-      attempt_id: null,                      // or a separate draft id
-      created_at: new Date().toISOString()
-    }));
+const records = questions.map((q, index) => ({
+  teacher: currentStudent.teacher,
+  studentName: currentStudent.student,
+  questionId: q.id,
+  sbg: q.sbg,
+  answer: studentAnswers[index],
+  attempts: questionStates[index].attempts,
+  correct: !!questionStates[index].correct,
+  attempt_id: createAttemptId(),     // NEW: each save gets its own attempt_id
+  created_at: new Date().toISOString()
+}));
 
     await saveAttemptsToSupabase(records);
     feedback.textContent = "Progress saved.";
