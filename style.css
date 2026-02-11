@@ -51,7 +51,7 @@ main {
 #progress-bar {
   height: 100%;
   width: 0%;
-  background-color: #4caf50;
+  background-color: #316b33;
   transition: width 0.3s ease;
 }
 
@@ -75,7 +75,7 @@ main {
 }
 
 #item-navigator .item-button.answered {
-  border-color: #4caf50;
+  background-color: #316b33;
 }
 
 /* Problem area */
