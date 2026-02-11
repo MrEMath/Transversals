@@ -1,92 +1,195 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
   <!-- ==========================
-       META & TITLE
+       META & STYLES
        =========================== -->
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Transversals Practice</title>
-
-  <!-- ==========================
-       STYLES
-       =========================== -->
-  <link rel="stylesheet" href="style.css" />
+  <meta charset="UTF-8">
+  <title>Transversal Practice</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <!-- ==========================
-       MAIN WRAPPER
+       HEADER
+       =========================== -->
+  <header>
+    <h1>Transversal Practice</h1>
+  </header>
+
+  <!-- ==========================
+       MAIN CONTENT
        =========================== -->
   <main>
     <!-- ========================
-         STUDENT LOGIN SCREEN
+         STUDENT LOGIN SECTION
          ========================= -->
     <section id="login-screen">
-      <h1>Transversals Practice</h1>
+      <h2>Student Login</h2>
 
-      <div class="login-panel">
-        <label for="teacher-select">Teacher:</label>
-        <select id="teacher-select">
-          <option value="">Select your teacher</option>
-          <!-- options injected by script.js -->
-        </select>
+      <label for="teacher-select">Teacher:</label>
+      <select id="teacher-select">
+        <option value="">Select your teacher</option>
+      </select>
 
-        <label for="student-select">Student:</label>
-        <select id="student-select" disabled>
-          <option value="">Select your name</option>
-          <!-- options injected by script.js -->
-        </select>
+      <label for="student-select">Student:</label>
+      <select id="student-select" disabled>
+        <option value="">Select your name</option>
+      </select>
 
-        <button id="login-button" type="button">Start Practice</button>
-        <div id="login-error" class="error"></div>
-      </div>
+      <!-- New Teacher Access link -->
+      <p>
+        <a href="teacher.html" id="teacher-access-link">Teacher Access</a>
+      </p>
+
+      <button id="login-button">Start Practice</button>
+      <p id="login-error" class="feedback-message warning"></p>
     </section>
 
     <!-- ========================
-         PRACTICE SCREEN
+         PRACTICE SECTION
          ========================= -->
     <section id="practice-screen" style="display:none;">
-      <!-- ------- PROGRESS BAR ------- -->
-      <div id="progress-container">
+      <div id="progress-wrapper">
         <div id="progress-bar"></div>
-        <span id="progress-text"></span>
       </div>
 
-      <!-- ------- ITEM NAVIGATOR ------- -->
       <div id="item-navigator"></div>
 
-      <!-- ------- PROBLEM AREA ------- -->
-      <div id="problem-area">
-        <p id="problem-number"></p>
+      <div id="problem-container">
+        <h2 id="problem-number"></h2>
         <p id="problem-text"></p>
-
-        <img id="problem-image" src="" alt="Transversal" />
+        <img id="problem-image" src="" alt="Transversal">
 
         <ol id="choices-list"></ol>
         <div id="feedback"></div>
 
         <!-- ------- ACTION BUTTONS ------- -->
-        <div class="practice-controls">
-          <button id="check-answer" type="button">Check Answer</button>
-          <button id="hint" type="button">Hint</button>
-          <button id="skip" type="button">Skip</button>
-          <button id="prev-question" type="button">Previous Question</button>
-          <button id="next-question" type="button">Next Question</button>
-          <button id="save-progress" type="button">Save Progress</button>
-          <button id="submit-practice" type="button">Submit Practice</button>
-        </div>
+        <button id="check-answer">Check Answer</button>
+        <button id="hint">Hint</button>
+        <button id="skip">Skip</button>
+        <button id="prev-question">Previous Question</button>
+        <button id="next-question">Next Question</button>
+        <button id="save-progress">Save Progress</button>
+        <button id="submit-practice">Submit Practice</button>
       </div>
     </section>
 
     <!-- ========================
-         SUMMARY SCREEN
+         SUMMARY SECTION
          ========================= -->
     <div id="summary-screen" style="display:none;"></div>
   </main>
 
   <!-- ==========================
+       FOOTER
+       =========================== -->
+  <footer>
+    <p>&copy; 2026 Transversal Practice</p>
+  </footer>
+
+  <!-- ==========================
        SCRIPTS
        =========================== -->
+  <!-- Supabase JS SDK -->
+  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+  <script src="supabase-client.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>
+<!DOCTYPE html>
+<html>
+<head>
+  <!-- ==========================
+       META & STYLES
+       =========================== -->
+  <meta charset="UTF-8">
+  <title>Transversal Practice</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- ==========================
+       HEADER
+       =========================== -->
+  <header>
+    <h1>Transversal Practice</h1>
+  </header>
+
+  <!-- ==========================
+       MAIN CONTENT
+       =========================== -->
+  <main>
+    <!-- ========================
+         STUDENT LOGIN SECTION
+         ========================= -->
+    <section id="login-screen">
+      <h2>Student Login</h2>
+
+      <label for="teacher-select">Teacher:</label>
+      <select id="teacher-select">
+        <option value="">Select your teacher</option>
+      </select>
+
+      <label for="student-select">Student:</label>
+      <select id="student-select" disabled>
+        <option value="">Select your name</option>
+      </select>
+
+      <!-- New Teacher Access link -->
+      <p>
+        <a href="teacher.html" id="teacher-access-link">Teacher Access</a>
+      </p>
+
+      <button id="login-button">Start Practice</button>
+      <p id="login-error" class="feedback-message warning"></p>
+    </section>
+
+    <!-- ========================
+         PRACTICE SECTION
+         ========================= -->
+    <section id="practice-screen" style="display:none;">
+      <div id="progress-wrapper">
+        <div id="progress-bar"></div>
+      </div>
+
+      <div id="item-navigator"></div>
+
+      <div id="problem-container">
+        <h2 id="problem-number"></h2>
+        <p id="problem-text"></p>
+        <img id="problem-image" src="" alt="Transversal">
+
+        <ol id="choices-list"></ol>
+        <div id="feedback"></div>
+
+        <!-- ------- ACTION BUTTONS ------- -->
+        <button id="check-answer">Check Answer</button>
+        <button id="hint">Hint</button>
+        <button id="skip">Skip</button>
+        <button id="prev-question">Previous Question</button>
+        <button id="next-question">Next Question</button>
+        <button id="save-progress">Save Progress</button>
+        <button id="submit-practice">Submit Practice</button>
+      </div>
+    </section>
+
+    <!-- ========================
+         SUMMARY SECTION
+         ========================= -->
+    <div id="summary-screen" style="display:none;"></div>
+  </main>
+
+  <!-- ==========================
+       FOOTER
+       =========================== -->
+  <footer>
+    <p>&copy; 2026 Transversal Practice</p>
+  </footer>
+
+  <!-- ==========================
+       SCRIPTS
+       =========================== -->
+  <!-- Supabase JS SDK -->
+  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
   <script src="supabase-client.js"></script>
   <script src="script.js"></script>
 </body>
