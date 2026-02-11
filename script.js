@@ -1,7 +1,12 @@
-// ---------------- API BASE URL (no longer used, safe to leave or remove) ----------------
+js
+// ==============================
+// API CONFIG (LEGACY, OPTIONAL)
+// ==============================
 const API_BASE_URL = "https://xsmhhduixpyotdhsjizr.supabase.co"; // TODO: replace or ignore
 
-// ----- ROSTERS -----
+// ==============================
+// ROSTERS (TEACHER → STUDENTS)
+// ==============================
 const roster = {
   Englade: [
     "Eduardo","Wilson","Tamara","Jakelin","Joy","Carmen","Genesis V","Laqoria",
@@ -120,7 +125,9 @@ const roster = {
   ]
 };
 
-// ----- STUDENT ATTEMPT STORAGE -----
+// ==============================
+// LOCAL STUDENT ATTEMPT STORAGE
+// ==============================
 let allStudentData = [];
 let isDataReady = false;
 
@@ -140,7 +147,9 @@ function saveLocalAttempt(record) {
   localStorage.setItem("reflectionPracticeResults", JSON.stringify(all));
 }
 
-// ----- SUPABASE SAVE updated -----
+// ==============================
+// SUPABASE SAVE HELPER
+// ==============================
 async function saveAttemptsToSupabase(records) {
   if (typeof window.supabaseClient === "undefined") return;
 
@@ -165,7 +174,9 @@ if (error) {
 }
 }
 
-// ----- DATA -----
+// ==============================
+// QUESTION DATA
+// ==============================
 const questions = [
   { id: 1, sbg: 0.5, text: "Which statement best describes the relationship between ∠m and ∠n?", image: "practice-images/1.png", choices: [ "They are corresponding angles.", "They are vertical angles.", "They are supplementary angles.", "They are alternate interior angles." ], correct: "b", hint: "Think about where the angles are located relative to the transversal." },
   { id: 2, sbg: 0.5, text: "Which statement best describes the relationship between ∠m and ∠n?", image: "practice-images/2.png", choices: [ "They are corresponding angles.", "They are vertical angles.", "They are supplementary angles.", "They are alternate interior angles." ], correct: "d", hint: "Compare their positions inside the parallel lines." },
@@ -282,7 +293,9 @@ const questions = [
   { id: 30, sbg: 3.0, text: "Find the value of x.", image: "practice-images/30.png", type: "fill", blanks: [{ id: "x", label: "x =", correct: "-9" }], hint: "Use alternate interior, corresponding, and supplementary relationships." }
 ];
 
-// stores student answers by index
+// ==============================
+// IN-MEMORY STATE
+// ==============================
 const studentAnswers = new Array(questions.length).fill(null);
 const questionStates = questions.map(() => ({
   answered: false,
@@ -291,7 +304,9 @@ const questionStates = questions.map(() => ({
 }));
 let currentIndex = 0; // 0-based
 
-// ----- ELEMENTS -----
+// ==============================
+// DOM ELEMENT REFERENCES
+// ==============================
 const progressBar = document.getElementById("progress-bar");
 const itemNavigator = document.getElementById("item-navigator");
 const problemNumber = document.getElementById("problem-number");
@@ -301,7 +316,7 @@ const choicesList = document.getElementById("choices-list");
 const feedback = document.getElementById("feedback");
 const checkBtn = document.getElementById("check-answer");
 const hintBtn = document.getElementById("hint");
-const skipBtn = document.getElementById("skip");
+const prevBtn = document.getElementById("prev-question");
 const nextBtn = document.getElementById("next-question");
 const loginScreen = document.getElementById("login-screen");
 const practiceScreen = document.getElementById("practice-screen");
@@ -312,6 +327,9 @@ const loginError = document.getElementById("login-error");
 const submitPracticeBtn = document.getElementById("submit-practice");
 const summaryScreen = document.getElementById("summary-screen");
 
+// ==============================
+// RESTORE PROGRESS FROM SUPABASE
+// ==============================
 async function restoreStudentProgressFromSupabase(teacher, student) {
   if (typeof window.supabaseClient === "undefined") return;
 
@@ -366,7 +384,9 @@ async function restoreStudentProgressFromSupabase(teacher, student) {
   highlightNavigator();
 }
 
-// LOGIN BUTTON
+// ==============================
+// LOGIN FLOW
+// ==============================
 loginButton.addEventListener("click", async () => {
   const teacher = teacherSelectEl.value;
   const student = studentSelectEl.value;
@@ -392,6 +412,9 @@ loginButton.addEventListener("click", async () => {
   updateProgress();
 });
 
+// ==============================
+// DROPDOWN POPULATION HELPERS
+// ==============================
 function populateTeachers() {
   teacherSelectEl.innerHTML = "";
   Object.keys(roster).forEach(teacherName => {
@@ -437,7 +460,9 @@ function restoreLoginIfPresent() {
   }
 }
 
-// ----- SETUP -----
+// ==============================
+// NAVIGATOR SETUP
+// ==============================
 function initNavigator() {
   itemNavigator.innerHTML = "";
   questions.forEach((q, index) => {
@@ -453,7 +478,9 @@ function initNavigator() {
     itemNavigator.appendChild(btn);
   });
 }
-
+// ==============================
+// QUESTION RENDERING
+// ==============================
 function renderQuestion() {
   const q = questions[currentIndex];
   problemNumber.textContent = (currentIndex + 1) + ".";
@@ -589,7 +616,9 @@ function renderQuestion() {
   updateButtons();
 }
 
-// ANSWER HANDLING
+// ==============================
+// ANSWER CAPTURE HELPERS
+// ==============================
 function getSelectedAnswer() {
   const q = questions[currentIndex];
 
@@ -666,7 +695,9 @@ async function saveCurrentQuestionToSupabase() {
 
   await saveAttemptsToSupabase([record]);
 }
-
+// ==============================
+// PROGRESS / NAV UI HELPERS
+// ==============================
 function updateProgress() {
   const answered = studentAnswers.filter(ans => ans !== null).length;
   const total = questions.length;
@@ -688,8 +719,13 @@ function highlightNavigator() {
 
 function updateButtons() {
   nextBtn.disabled = currentIndex === questions.length - 1;
+  if (prevBtn) {
+    prevBtn.disabled = currentIndex === 0;
+  }
 }
-
+// ==============================
+// SUBMIT PRACTICE (FINAL ATTEMPT)
+// ==============================
 function finishPractice() {
   const rawStudent = localStorage.getItem("reflectionCurrentStudent");
   const currentStudent = rawStudent ? JSON.parse(rawStudent) : null;
@@ -767,9 +803,9 @@ function finishPractice() {
   }
 }
 
-
-
-// BUTTON HANDLERS
+// ==============================
+// GRADING HELPER
+// ==============================
 function evaluateAnswerAt(index) {
   const q = questions[index];
   const ans = studentAnswers[index];
@@ -805,7 +841,9 @@ function evaluateAnswerAt(index) {
 
   return isCorrect;
 }
-
+// ==============================
+// BUTTON EVENT HANDLERS
+// ==============================
 checkBtn.addEventListener("click", () => {
   saveCurrentAnswer();
   const isCorrect = evaluateAnswerAt(currentIndex);
@@ -838,6 +876,16 @@ skipBtn.addEventListener("click", () => {
     renderQuestion();
   }
 });
+
+if (prevBtn) {
+  prevBtn.addEventListener("click", () => {
+    saveCurrentAnswer();
+    if (currentIndex > 0) {
+      currentIndex--;
+      renderQuestion();
+    }
+  });
+}
 
 nextBtn.addEventListener("click", () => {
   saveCurrentAnswer();
@@ -880,8 +928,9 @@ const records = questions.map((q, index) => ({
   });
 }
 
-
-// INITIALIZE
+// ==============================
+// INITIALIZE ON DOM READY
+// ==============================
 document.addEventListener("DOMContentLoaded", () => {
   loadLocalData();
   populateTeachers();
