@@ -129,6 +129,10 @@ button {
   margin-right: 8px;
 }
 
+button:hover:not(:disabled) {
+  background-color: #a01829;  /* slightly darker red */
+}
+
 button:disabled {
   opacity: 0.6;
   cursor: default;
