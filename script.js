@@ -868,14 +868,6 @@ hintBtn.addEventListener("click", () => {
   }
 });
 
-skipBtn.addEventListener("click", () => {
-  saveCurrentAnswer();
-  if (currentIndex < questions.length - 1) {
-    currentIndex++;
-    renderQuestion();
-  }
-});
-
 if (prevBtn) {
   prevBtn.addEventListener("click", () => {
     saveCurrentAnswer();
