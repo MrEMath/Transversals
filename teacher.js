@@ -36,7 +36,7 @@ async function resetStudentData(teacher, studentName) {
 }
 
 // ---------------- DELETE ONE ATTEMPT (BUCKET) ----------------
-async function deleteAttempt(teacher, studentName, attemptIdMs) {
+async function deleteAttempt(teacher, studentName, attemptId) {
   if (typeof window.supabaseClient === "undefined") return;
 
   const confirmDelete = window.confirm(
@@ -49,11 +49,7 @@ async function deleteAttempt(teacher, studentName, attemptIdMs) {
     .delete()
     .eq("teacher", teacher)
     .eq("student_name", studentName)
-    .gte("created_at", new Date(Number(attemptIdMs)).toISOString())
-    .lt(
-      "created_at",
-      new Date(Number(attemptIdMs) + 60 * 1000).toISOString()
-    );
+    .eq("attempt_id", attemptId);
 
   if (error) {
     console.error("Error deleting attempt", error);
@@ -61,8 +57,7 @@ async function deleteAttempt(teacher, studentName, attemptIdMs) {
     return;
   }
 
-  await loadData();
-  renderDashboard(
+  await loadData();  renderDashboard(
     document.getElementById("overall-stats"),
     document.querySelector("#item-analysis-table tbody"),
     document.getElementById("student-select"),
@@ -111,7 +106,7 @@ async function loadData() {
 // collapse timestamps to the minute so attempts are not split
 function getAttemptKey(ts) {
   const d = new Date(ts);
-  d.setSeconds(0, 0);
+
   return d.getTime();
 }
 
