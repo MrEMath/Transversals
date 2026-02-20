@@ -1,4 +1,5 @@
-// ---------------- TEACHER CONFIG ----------------
+
+console.log(">>> TEACHER JS v2 – with .range(0,7000) <<<");
 const TEACHER_PASSWORDS = {
   Englade: "englade2026",
   Russell: "russell2026",
