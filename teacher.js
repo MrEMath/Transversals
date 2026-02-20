@@ -31,8 +31,6 @@ const { error } = await window.supabaseClient
     console.error("Error resetting student attempts", error);
     alert("There was an error resetting this student. Please try again.");
     return;
-  }
-
   await loadData();
 }
 
@@ -90,6 +88,8 @@ async function loadData() {
     allRecords = [];
     return;
   }
+console.log("Raw attempts from Supabase", data);
+console.log("Mapped allRecords", allRecords);
 
   allRecords = (data || []).map((row) => ({
     teacher: row.teacher,
