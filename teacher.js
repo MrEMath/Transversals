@@ -918,4 +918,4 @@ function computeStudentCurrentSbg(recordsForStudent) {
   const avgSbg =
     correctItems.reduce((sum, r) => sum + r.sbg, 0) / correctItems.length;
   return Number(avgSbg.toFixed(1));
-}
+}}
