@@ -75,24 +75,30 @@ async function deleteAttempt(teacher, studentName, attemptId) {
 }
 
 // ---------------- DATA LOAD FROM SUPABASE ----------------
-async function loadData() {
+async function loadData(teacherName = null) {
   if (typeof window.supabaseClient === "undefined") {
     allRecords = [];
     return;
   }
 
-  const { data, error } = await window.supabaseClient
+  let query = window.supabaseClient
     .from("attempts")
     .select("*")
-    .order("created_at", { ascending: true }) // ensure consistent order
-    .range(0, 7000); // load up to 7000 rows instead of default 1000
+    .order("created_at", { ascending: true });
+
+  if (teacherName) {
+    query = query.eq("teacher", teacherName);
+  }
+
+  const { data, error } = await query.range(0, 7000);
+
   if (error) {
     console.error("Error loading attempts from Supabase", error);
     allRecords = [];
     return;
   }
-console.log("Raw attempts from Supabase", data);
-console.log("Mapped allRecords", allRecords);
+
+  console.log("data length", data.length);
 
   allRecords = (data || []).map((row) => ({
     teacher: row.teacher,
@@ -134,7 +140,6 @@ document.addEventListener("DOMContentLoaded", async () => {
   const refreshBtn = document.getElementById("refresh-data-btn");
   const deleteAttemptBtn = document.getElementById("delete-attempt-btn");
 
-  await loadData();
 
   let currentStudentItems = [];
   let currentItemIndex = 0;
@@ -164,19 +169,19 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   // REFRESH BUTTON
-  if (refreshBtn) {
-    refreshBtn.addEventListener("click", async () => {
-      await loadData();
-      if (currentTeacher) {
-        renderDashboard(
-          overallStatsEl,
-          itemAnalysisBody,
-          studentSelect,
-          studentSummaryEl
-        );
-      }
-    });
-  }
+if (refreshBtn) {
+  refreshBtn.addEventListener("click", async () => {
+    await loadData(currentTeacher);
+    if (currentTeacher) {
+      renderDashboard(
+        overallStatsEl,
+        itemAnalysisBody,
+        studentSelect,
+        studentSummaryEl
+      );
+    }
+  });
+}
 
   // DELETE ATTEMPT BUTTON
   if (deleteAttemptBtn) {
@@ -198,35 +203,39 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   // TEACHER LOGIN
-  teacherLoginBtn.addEventListener("click", () => {
-    const name = teacherNameEl.value;
-    const pwd = teacherPasswordEl.value.trim();
+// TEACHER LOGIN
+teacherLoginBtn.addEventListener("click", async () => {
+  const name = teacherNameEl.value;
+  const pwd = teacherPasswordEl.value.trim();
 
-    if (!name || !pwd) {
-      teacherLoginError.textContent = "Select your name and enter password.";
-      return;
-    }
+  if (!name || !pwd) {
+    teacherLoginError.textContent = "Select your name and enter password.";
+    return;
+  }
 
-    if (TEACHER_PASSWORDS[name] !== pwd) {
-      teacherLoginError.textContent = "Incorrect password.";
-      return;
-    }
+  if (TEACHER_PASSWORDS[name] !== pwd) {
+    teacherLoginError.textContent = "Incorrect password.";
+    return;
+  }
 
-    teacherLoginError.textContent = "";
-    currentTeacher = name;
-    loginSection.style.display = "none";
-    dashboardSection.style.display = "block";
+  teacherLoginError.textContent = "";
+  currentTeacher = name;
 
-    document.getElementById("dashboard-title").textContent =
-      `Teacher Dashboard – ${name}`;
+  await loadData(currentTeacher);   // ✅ load only this teacher’s attempts
 
-    renderDashboard(
-      overallStatsEl,
-      itemAnalysisBody,
-      studentSelect,
-      studentSummaryEl
-    );
-  });
+  loginSection.style.display = "none";
+  dashboardSection.style.display = "block";
+
+  document.getElementById("dashboard-title").textContent =
+    `Teacher Dashboard – ${name}`;
+
+  renderDashboard(
+    overallStatsEl,
+    itemAnalysisBody,
+    studentSelect,
+    studentSummaryEl
+  );
+});
 
   // Student dropdown change
   studentSelect.addEventListener("change", () => {
