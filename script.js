@@ -355,13 +355,13 @@ async function restoreStudentProgressFromSupabase(teacher, student) {
     return;
   }
 
-  // group rows by attempt_id (fallback to created_at if needed)
-  const byAttempt = {};
-  data.forEach(r => {
-    const attemptId = r.attempt_id || new Date(r.created_at).getTime();
-    if (!byAttempt[attemptId]) byAttempt[attemptId] = [];
-    byAttempt[attemptId].push(r);
-  });
+// group rows by the same minute-bucket key as the teacher dashboard
+const byAttempt = {};
+data.forEach(r => {
+  const attemptId = getAttemptKey(r.created_at).toString();
+  if (!byAttempt[attemptId]) byAttempt[attemptId] = [];
+  byAttempt[attemptId].push(r);
+});
 
   const attemptIds = Object.keys(byAttempt).map(Number).sort((a, b) => a - b);
   const latestAttemptRows = byAttempt[attemptIds[attemptIds.length - 1]];

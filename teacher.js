@@ -33,7 +33,6 @@ async function resetStudentData(teacher, studentName) {
   }
 
   await loadData();
-  // caller will re-render dashboard with currentTeacher context
 }
 
 // ---------------- DELETE ONE ATTEMPT (BUCKET) ----------------
@@ -104,7 +103,8 @@ async function loadData() {
     answer: row.answer,
     attempts: row.attempts,
     correct: row.correct,
-    timestamp: row.created_at
+    timestamp: row.created_at,
+    attempt_id: row.attempt_id || null
   }));
 }
 
@@ -155,7 +155,6 @@ document.addEventListener("DOMContentLoaded", async () => {
         studentSelect,
         studentSummaryEl
       );
-      // clear student-specific UI
       studentSummaryEl.innerHTML = "";
       attemptSelect.innerHTML = `<option value="">Select an attempt</option>`;
       const strip = document.getElementById("student-item-strip");
@@ -781,7 +780,6 @@ function buildLatestByStudentQuestion(teacherRecords) {
 }
 
 // ---------------- STUDENT DETAIL ----------------
-// ---------------- STUDENT DETAIL ----------------
 function renderStudentSummaryAndAttempts(
   studentName,
   studentSummaryEl,
@@ -893,6 +891,15 @@ function renderStudentAttemptItems(studentName, attemptId) {
       card.appendChild(row);
       strip.appendChild(card);
     });
+}
+
+function sbgStripClass(level) {
+  if (level <= 0.5) return "sbg-strip-0-5";
+  if (level <= 1.0) return "sbg-strip-1-0";
+  if (level <= 1.5) return "sbg-strip-1-5";
+  if (level <= 2.0) return "sbg-strip-2-0";
+  if (level <= 2.5) return "sbg-strip-2-5";
+  return "sbg-strip-3-0";
 }
 
 function computeStudentCurrentSbg(recordsForStudent) {
