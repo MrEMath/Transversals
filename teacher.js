@@ -781,6 +781,7 @@ function buildLatestByStudentQuestion(teacherRecords) {
 }
 
 // ---------------- STUDENT DETAIL ----------------
+// ---------------- STUDENT DETAIL ----------------
 function renderStudentSummaryAndAttempts(
   studentName,
   studentSummaryEl,
@@ -795,12 +796,12 @@ function renderStudentSummaryAndAttempts(
     return;
   }
 
-const byAttempt = {};
-records.forEach((r) => {
-  const attemptId = r.attempt_id || getAttemptKey(r.timestamp);
-  if (!byAttempt[attemptId]) byAttempt[attemptId] = [];
-  byAttempt[attemptId].push(r);
-});
+  const byAttempt = {};
+  records.forEach((r) => {
+    const attemptId = getAttemptKey(r.timestamp).toString();
+    if (!byAttempt[attemptId]) byAttempt[attemptId] = [];
+    byAttempt[attemptId].push(r);
+  });
 
   const attemptIds = Object.keys(byAttempt).sort();
   const totalAttempts = attemptIds.length;
@@ -839,7 +840,7 @@ function renderStudentAttemptItems(studentName, attemptId) {
     (r) =>
       r.teacher === currentTeacher &&
       r.studentName === studentName &&
-      getAttemptKey(r.timestamp) === Number(attemptId)
+      String(getAttemptKey(r.timestamp)) === String(attemptId)
   );
 
   const strip = document.getElementById("student-item-strip");
@@ -894,22 +895,13 @@ function renderStudentAttemptItems(studentName, attemptId) {
     });
 }
 
-function sbgStripClass(level) {
-  if (level <= 0.5) return "sbg-strip-0-5";
-  if (level <= 1.0) return "sbg-strip-1-0";
-  if (level <= 1.5) return "sbg-strip-1-5";
-  if (level <= 2.0) return "sbg-strip-2-0";
-  if (level <= 2.5) return "sbg-strip-2-5";
-  return "sbg-strip-3-0";
-}
-
 function computeStudentCurrentSbg(recordsForStudent) {
-const byAttempt = {};
-recordsForStudent.forEach((r) => {
-  const attemptId = r.attempt_id || getAttemptKey(r.timestamp);
-  if (!byAttempt[attemptId]) byAttempt[attemptId] = [];
-  byAttempt[attemptId].push(r);
-});
+  const byAttempt = {};
+  recordsForStudent.forEach((r) => {
+    const attemptId = getAttemptKey(r.timestamp).toString();
+    if (!byAttempt[attemptId]) byAttempt[attemptId] = [];
+    byAttempt[attemptId].push(r);
+  });
 
   const attemptIds = Object.keys(byAttempt).sort();
   const latest = byAttempt[attemptIds[attemptIds.length - 1]];
