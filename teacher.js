@@ -20,11 +20,12 @@ async function resetStudentData(teacher, studentName) {
   );
   if (!confirmReset) return;
 
-  const { error } = await window.supabaseClient
-    .from("attempts")
-    .delete()
-    .eq("teacher", teacher)
-    .eq("student_name", studentName);
+const { error } = await window.supabaseClient
+  .from("attempts")
+  .delete()
+  .eq("teacher", teacher)
+  .eq("student_name", studentName)
+  .eq("attempt_id", attemptIdMs);
 
   if (error) {
     console.error("Error resetting student attempts", error);
@@ -284,9 +285,12 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   // expose for other helpers
   window.computeStudentItemAccuracy = function (studentName) {
-    const records = allRecords.filter(
-      (r) => r.teacher === currentTeacher && r.studentName === studentName
-    );
+const records = allRecords.filter(
+  (r) =>
+    r.teacher === currentTeacher &&
+    r.studentName === studentName &&
+    String(r.attempt_id) === String(attemptId)
+);
 
     const byQuestion = {};
     records.forEach((r) => {
@@ -406,9 +410,9 @@ function renderDashboard(
   const studentNames = [
     ...new Set(teacherRecords.map((r) => r.studentName))
   ];
-  const attemptIds = [
-    ...new Set(teacherRecords.map((r) => getAttemptKey(r.timestamp)))
-  ];
+const attemptIds = [
+  ...new Set(teacherRecords.map((r) => r.attempt_id))
+];
 
   const correctCount = teacherRecords.filter((r) => r.correct).length;
   const percentCorrect = teacherRecords.length
@@ -789,12 +793,12 @@ function renderStudentSummaryAndAttempts(
     return;
   }
 
-  const byAttempt = {};
-  records.forEach((r) => {
-    const attemptId = getAttemptKey(r.timestamp).toString();
-    if (!byAttempt[attemptId]) byAttempt[attemptId] = [];
-    byAttempt[attemptId].push(r);
-  });
+const byAttempt = {};
+records.forEach((r) => {
+  const attemptId = String(r.attempt_id);
+  if (!byAttempt[attemptId]) byAttempt[attemptId] = [];
+  byAttempt[attemptId].push(r);
+});
 
   const attemptIds = Object.keys(byAttempt).sort();
   const totalAttempts = attemptIds.length;
