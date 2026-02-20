@@ -82,8 +82,9 @@ async function loadData() {
 
   const { data, error } = await window.supabaseClient
     .from("attempts")
-    .select("*");
-
+    .select("*")
+    .order("created_at", { ascending: true }) // ensure consistent order
+    .range(0, 7000); // load up to 7000 rows instead of default 1000
   if (error) {
     console.error("Error loading attempts from Supabase", error);
     allRecords = [];
