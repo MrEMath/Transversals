@@ -1,0 +1,595 @@
+body {
+  font-family: Arial, sans-serif;
+  margin: 0;
+  padding: 0;
+}
+
+header, footer {
+  background-color: #c51d34;
+  color: white;
+  text-align: center;
+  padding: 10px 0;
+}
+
+body {
+  font-family: Arial, sans-serif;
+  margin: 0;
+  padding: 0;
+}
+
+header, footer {
+  background-color: #c51d34;
+  color: white;
+  text-align: center;
+  padding: 10px 0;
+}
+
+main {
+  display: block;
+  padding: 20px;
+}
+
+/* Ensure practice area shows once JS toggles it */
+#practice-screen {
+  display: block;
+}
+
+#problem-container {
+  display: block;
+}
+
+/* Progress bar */
+#progress-wrapper {
+  width: 100%;
+  background-color: #eee;
+  border-radius: 5px;
+  overflow: hidden;
+  height: 16px;
+  margin-bottom: 15px;
+}
+
+#progress-bar {
+  height: 100%;
+  width: 0%;
+  background-color: #316b33;
+  transition: width 0.3s ease;
+}
+
+/* Item navigator */
+#item-navigator {
+  margin-bottom: 20px;
+}
+
+#item-navigator .item-button {
+  margin: 2px;
+  padding: 6px 10px;
+  border: 1px solid #bbb;
+  background-color: #333;  /* darker gray */
+  color: #d0d0d0;  /* dark text for contrast */
+  cursor: pointer;
+}
+
+#item-navigator .item-button.current {
+  background-color: #c51d34;
+  color: white;
+}
+
+#item-navigator .item-button.answered {
+  background-color: #316b33;
+  color:white
+}
+
+/* Problem area */
+#problem-container img {
+  max-width: 100%;
+  height: auto;
+  margin: 10px 0;
+}
+
+#choices-list {
+  list-style-type: decimal;
+}
+
+#choices-list li {
+  margin-bottom: 8px;
+}
+
+/* Feedback */
+.feedback-message {
+  margin-top: 10px;
+  font-weight: bold;
+}
+
+.feedback-message.correct {
+  color: #316b33;
+}
+
+.feedback-message.incorrect {
+  color: #c62828;
+}
+
+.feedback-message.warning {
+  color: #ff8f00;
+}
+
+.feedback-message.hint {
+  color: #c51d34;
+}
+
+/* Buttons */
+button {
+  background-color: #c41524;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 10px 50px;
+  font-size: 16px;
+  cursor: pointer;
+  font-weight: bold;
+  margin-top: 10px;
+  margin-right: 8px;
+}
+
+button:hover:not(:disabled) {
+  background-color: #a01829;  /* slightly darker red */
+}
+
+button:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+/* Progress bar */
+#progress-wrapper {
+  width: 100%;
+  background-color: #eee;
+  border-radius: 5px;
+  overflow: hidden;
+  height: 16px;
+  margin-bottom: 15px;
+}
+
+#progress-bar {
+  height: 100%;
+  width: 0%;
+  background-color: #316b33;
+  transition: width 0.3s ease;
+}
+
+/* Item navigator */
+#item-navigator {
+  margin-bottom: 20px;
+}
+
+#item-navigator .item-button {
+  margin: 2px;
+  padding: 6px 10px;
+  border: 1px solid #ccc;
+  background-color: #f5f5f5;
+  cursor: pointer;
+}
+
+#item-navigator .item-button.current {
+  background-color: #c51d34;
+  color: white;
+}
+
+#item-navigator .item-button.answered {
+  border-color: #316b33;
+}
+
+/* Problem area */
+#problem-container img {
+  max-width: 100%;
+  height: auto;
+  margin: 10px 0;
+}
+
+#choices-list {
+  list-style-type: decimal;
+}
+
+#choices-list li {
+  margin-bottom: 8px;
+}
+
+/* Feedback */
+.feedback-message {
+  margin-top: 10px;
+  font-weight: bold;
+}
+
+.feedback-message.correct {
+  color: #2e7d32;
+}
+
+.feedback-message.incorrect {
+  color: #c62828;
+}
+
+.feedback-message.warning {
+  color: #ff8f00;
+}
+
+.feedback-message.hint {
+  color: #c51d34;
+}
+
+button.secondary {
+  background-color: #555555;
+}
+
+button:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+.sbg-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0.25rem 0;
+}
+
+.sbg-label { width: 80px; font-weight: 600; }
+.sbg-bar {
+  flex: 1;
+  background: #eee;
+  border-radius: 999px;
+  overflow: hidden;
+  height: 10px;
+}
+.sbg-bar-fill {
+  height: 100%;
+  background: #4caf50;
+}
+
+.sbg-band {
+  border: 1px solid #cddc39;
+  border-radius: 4px;
+  margin: 0.5rem 0;
+  padding: 0.25rem 0.5rem;
+}
+.sbg-band-header {
+  display: flex;
+  justify-content: space-between;
+  font-weight: 600;
+}
+.sbg-chip-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  margin-top: 0.25rem;
+}
+.sbg-chip {
+  border: 1px solid #cddc39;
+  border-radius: 3px;
+  padding: 0.1rem 0.4rem;
+  font-size: 0.8rem;
+}
+
+.sbg-card {
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  margin: 0.75rem 0;
+  padding: 0.5rem;
+}
+.sbg-card-header {
+  font-weight: 600;
+  margin-bottom: 0.25rem;
+}
+.sbg-card-questions {
+  display: flex;
+  gap: 0.5rem;
+  overflow-x: auto;
+}
+.sbg-question-tile {
+  min-width: 160px;
+  border: 1px solid #eee;
+  border-radius: 4px;
+  padding: 0.25rem 0.4rem;
+}
+.sbg-question-header {
+  display: flex;
+  justify-content: space-between;
+  font-weight: 600;
+  margin-bottom: 0.15rem;
+}
+.sbg-question-student {
+  font-size: 0.8rem;
+}
+.card {
+  background-color: #ffffff;
+  border: 1px solid #918e8e;
+  border-radius: 8px;
+  padding: 16px 20px;
+  margin-bottom: 16px;
+}
+
+/* Header text upper-right */
+.card-header {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 8px;
+}
+
+.card-header h3 {
+  margin: 0;
+  color: #3d2c2c;
+  font-weight: 600;
+}
+
+/* Optional: layout for cards side-by-side on wide screens */
+#teacher-dashboard {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 16px;
+}
+
+#sbg-doughnut {
+  max-width: 300px;   /* or whatever you like */
+  max-height: 300px;
+}
+
+.chart-wrapper {
+  width: 320px;
+  height: 320px;
+  margin: 0 auto;
+}
+
+.chart-wrapper canvas {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+#item-bar-chart {
+  max-height: 180px;      /* try 140–200px until it feels right */
+}
+
+/* Chart.js legend horizontal row under doughnut */
+.chart-wrapper + div .legend, /* fallback if you had custom legend */
+.chart-wrapper + .chartjs-size-monitor {
+  /* ignore if not present */
+}
+
+/* generic Chart.js legend tweak */
+.chart-wrapper + div ul,
+.chart-wrapper + div li {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+/* target Chart.js legend container under doughnut */
+.sbg-card .card-body .chart-wrapper + div ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+/* center the SBG strip inside the Individual Student card */
+#student-item-strip {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 0.5rem;
+  margin: 0.5rem auto 0;
+  max-width: 90%;
+  overflow-x: auto;
+}
+
+.sbg-strip-card {
+  flex: 0 0 140px;
+  margin: 0;
+  border-radius: 18px;
+  padding: 6px 10px 10px;
+  border: 3px solid #c51d34;
+  background: #ffffff;
+  font-size: 0.8rem;
+}
+/* If you want stricter control: */
+.item-analysis-card .card-body {
+  height: 200px;           /* total card body height */
+}
+
+.item-analysis-card .card-body canvas {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+#item-analysis-table-wrapper {
+  display: none;
+}
+#item-analysis-table-section {
+  display: none;
+}
+/* two half-width cards on large screens */
+.half-card {
+  grid-column: span 1;
+}
+
+/* ensure previous cards span full width if desired */
+.overall-card,
+.sbg-card,
+.item-analysis-card {
+  grid-column: span 2;
+}
+
+/* If you want explicit 2-column layout on wider screens: */
+@media (min-width: 900px) {
+  #teacher-dashboard {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* dashboard grid: two columns on larger screens */
+@media (min-width: 900px) {
+  #teacher-dashboard {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+  }
+
+  .overall-card,
+  .sbg-card,
+  .item-analysis-card {
+    grid-column: 1 / -1; /* full width */
+  }
+
+  .half-card {
+    grid-column: span 1;
+  }
+}
+
+/* student detail layout */
+.student-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+/* horizontal SBG strip inside Individual Student card */
+#student-item-strip {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+  overflow-x: auto;
+}
+
+.sbg-strip-card {
+  flex: 0 0 140px;
+  margin: 0;
+  border-radius: 18px;
+  padding: 6px 10px 10px;
+  border: 3px solid #c51d34;   /* default red; overridden per level */
+  background: #ffffff;
+  font-size: 0.8rem;
+}
+
+.sbg-strip-header {
+  text-align: center;
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+
+.sbg-strip-items {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.sbg-strip-items .index {
+  font-size: 0.85rem;
+  margin-right: 2px;
+}
+
+.sbg-strip-items .box {
+  width: 18px;
+  height: 18px;
+  border-radius: 3px;
+  border: 2px solid currentColor;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.7rem;
+}
+
+/* colors per level (match your SBG palette) */
+.sbg-strip-0-5 { border-color: #c51d34; color: #c51d34; }
+.sbg-strip-1-0,
+.sbg-strip-1-5 { border-color: #e9b000; color: #e9b000; }
+.sbg-strip-2-0,
+.sbg-strip-2-5 { border-color: #007f3b; color: #007f3b; }
+.sbg-strip-3-0 { border-color: #0067A5; color: #0067A5; }
+
+/* flipcard layout */
+#item-flipcard {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.flipcard-frame {
+  position: relative;          /* anchor popup */
+  flex: 1;
+  max-width: 320px;
+  border: 1px solid #918e8e;
+  border-radius: 8px;
+  padding: 8px;
+  background-color: #ffffff;
+}
+#item-screenshot {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.nav-arrow {
+  border: none;
+  background: transparent;
+  font-size: 1.5rem;
+  cursor: pointer;
+}
+
+/* accuracy circle */
+#item-accuracy {
+  text-align: center;
+}
+
+#accuracy-circle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 140px;
+  height: 140px;
+  border-radius: 50%;
+  border: 8px solid #c51d34; /* default red */
+  margin-top: 0.5rem;
+}
+
+#accuracy-percent {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #c51d34; /* default red */
+}
+
+#item-analysis-table-section {
+  display: none;
+}
+.flipcard-image-wrapper {
+  position: relative;
+  display: inline-block;
+}
+
+/* popup centered over the frame, 150% size */
+.flipcard-zoom-popup {
+  display: none;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 200%;
+  height: 200%;
+  transform: translate(-50%, -50%);
+  z-index: 1000;
+  border: 2px solid #444;
+  background: #fff;
+  padding: 4px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+}
+
+.flipcard-zoom-popup img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+/* show popup on hover */
+.flipcard-image-wrapper:hover .flipcard-zoom-popup {
+  display: block;
+}
