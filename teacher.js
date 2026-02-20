@@ -20,17 +20,18 @@ async function resetStudentData(teacher, studentName) {
   );
   if (!confirmReset) return;
 
-const { error } = await window.supabaseClient
-  .from("attempts")
-  .delete()
-  .eq("teacher", teacher)
-  .eq("student_name", studentName)
-  .eq("attempt_id", attemptIdMs);
+  const { error } = await window.supabaseClient
+    .from("attempts")
+    .delete()
+    .eq("teacher", teacher)
+    .eq("student_name", studentName); // remove attempt_id here: we want ALL sessions
 
   if (error) {
     console.error("Error resetting student attempts", error);
     alert("There was an error resetting this student. Please try again.");
     return;
+  }
+
   await loadData();
 }
 
@@ -918,4 +919,4 @@ function computeStudentCurrentSbg(recordsForStudent) {
   const avgSbg =
     correctItems.reduce((sum, r) => sum + r.sbg, 0) / correctItems.length;
   return Number(avgSbg.toFixed(1));
-}}
+}
