@@ -285,14 +285,10 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   // expose for other helpers
-  window.computeStudentItemAccuracy = function (studentName) {
-const records = allRecords.filter(
-  (r) =>
-    r.teacher === currentTeacher &&
-    r.studentName === studentName &&
-    String(r.attempt_id) === String(attemptId)
-);
-
+window.computeStudentItemAccuracy = function (studentName) {
+  const records = allRecords.filter(
+    (r) => r.teacher === currentTeacher && r.studentName === studentName
+  );
     const byQuestion = {};
     records.forEach((r) => {
       const qid = r.questionId;
@@ -838,9 +834,8 @@ function renderStudentAttemptItems(studentName, attemptId) {
     (r) =>
       r.teacher === currentTeacher &&
       r.studentName === studentName &&
-      String(getAttemptKey(r.timestamp)) === String(attemptId)
+      String(r.attempt_id) === String(attemptId)
   );
-
   const strip = document.getElementById("student-item-strip");
   if (!strip) return;
 
@@ -905,7 +900,7 @@ function sbgStripClass(level) {
 function computeStudentCurrentSbg(recordsForStudent) {
   const byAttempt = {};
   recordsForStudent.forEach((r) => {
-    const attemptId = getAttemptKey(r.timestamp).toString();
+    const attemptId = String(r.attempt_id);
     if (!byAttempt[attemptId]) byAttempt[attemptId] = [];
     byAttempt[attemptId].push(r);
   });
