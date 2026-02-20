@@ -81,26 +81,42 @@ async function loadData(teacherName = null) {
     return;
   }
 
-  let query = window.supabaseClient
-    .from("attempts")
-    .select("*")
-    .order("created_at", { ascending: true });
+  const pageSize = 1000;
+  let offset = 0;
+  let allRows = [];
 
-  if (teacherName) {
-    query = query.eq("teacher", teacherName);
+  while (true) {
+    let query = window.supabaseClient
+      .from("attempts")
+      .select("*")
+      .order("created_at", { ascending: true })
+      .range(offset, offset + pageSize - 1);
+
+    if (teacherName) {
+      query = query.eq("teacher", teacherName);
+    }
+
+    const { data, error } = await query;
+
+    if (error) {
+      console.error("Error loading attempts from Supabase", error);
+      allRecords = [];
+      return;
+    }
+
+    if (!data || data.length === 0) break;
+
+    allRows = allRows.concat(data);
+
+    // If we got fewer than pageSize, we’re done
+    if (data.length < pageSize) break;
+
+    offset += pageSize;
   }
 
-  const { data, error } = await query.range(0, 7000);
+  console.log("total data length", allRows.length);
 
-  if (error) {
-    console.error("Error loading attempts from Supabase", error);
-    allRecords = [];
-    return;
-  }
-
-  console.log("data length", data.length);
-
-  allRecords = (data || []).map((row) => ({
+  allRecords = allRows.map((row) => ({
     teacher: row.teacher,
     studentName: row.student_name,
     questionId: row.question_id,
